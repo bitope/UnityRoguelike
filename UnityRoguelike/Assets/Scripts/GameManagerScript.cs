@@ -9,7 +9,12 @@ public class GameManagerScript : MonoBehaviour
 
     public Material wallMaterial;
     public Material floorMaterial;
-    public int seed = 20;
+
+    public static int seed = 20;
+    public static int turnCount = 0;
+    public static MersenneTwister rng = new MersenneTwister((uint)seed);
+
+    public static Stage stage = null;
 
     void Start()
     {
@@ -18,7 +23,7 @@ public class GameManagerScript : MonoBehaviour
         bool setPlayer = true;
         var container = new GameObject("level");
 
-		Stage stage = new Stage(23, 23);
+		stage = new Stage(23, 23);
 
         RoomDecorator rd = new RoomDecorator(stage);
         rd.ReadAll(Application.dataPath+"\\rooms.txt");
@@ -29,7 +34,7 @@ public class GameManagerScript : MonoBehaviour
         g.numRoomTries = 500;
         g.generate(stage);
 
-        MersenneTwister mt = new MersenneTwister((uint)seed);
+        rng = new MersenneTwister((uint)seed);
 
         var wallset = Tileset.GetRandomSet(Tileset.ws_everything);
         var floorset = Tileset.GetRandomSet(Tileset.fs_everything);
@@ -99,7 +104,7 @@ public class GameManagerScript : MonoBehaviour
 
                 if (tile == Tiles.Floor)
                 {
-                    if (mt.OneIn(20))
+                    if (rng.OneIn(20))
                     {
                         var cell = Instantiate(GameObject.Find("Item"));
                         cell.name = "Item_" + x + "_" + y;
@@ -108,7 +113,7 @@ public class GameManagerScript : MonoBehaviour
                         cell.transform.parent = container.transform;
                     }
 
-                    if (mt.OneIn(20))
+                    if (rng.OneIn(20))
                     {
                         var cell = Instantiate(GameObject.Find("EnemySmall"));
                         cell.name = "Rat_" + x + "_" + y;
@@ -124,8 +129,21 @@ public class GameManagerScript : MonoBehaviour
 	
 	// Update is called once per frame
 	void Update () {
-	
+	    if (Input.GetKeyDown(KeyCode.F1))
+	    {
+	        seed++;
+	        var x = GameObject.Find("level");
+            GameObject.Destroy(x);
+	        turnCount = 0;
+
+            Start();
+	    }
 	}
+
+    public static void EndTurn(int count = 1)
+    {
+        turnCount+=count;
+    }
 
     public GameObject CreateWall(int x, int y, int tileid)
     {
@@ -175,5 +193,7 @@ public class GameManagerScript : MonoBehaviour
         c.transform.position = new Vector3(x, .35f, y);
         return c;
     }
+
+
 
 }

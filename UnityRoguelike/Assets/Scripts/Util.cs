@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityRoguelike;
 
 namespace Dungeon
 {
@@ -80,6 +81,11 @@ namespace Dungeon
                 return true;
 
             return UnityEngine.Random.Range(0, y) < x;
+        }
+
+        public static Vec GetVecPosition(Vector3 v)
+        {
+            return new Vec((int)(v.x + 0.5f), (int)(v.z + 0.5f));
         }
     }
 }

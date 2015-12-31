@@ -45,6 +45,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private Vector3 attackRotation;
 
         private float curSpeed=0f;
+
+        private Vec oldPos;
+
         // Use this for initialization
         private void Start()
         {
@@ -93,6 +96,16 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
 
             m_PreviouslyGrounded = m_CharacterController.isGrounded;
+
+            var p = new Vec((int)(transform.position.x + 0.5f), (int)(transform.position.z + 0.5f));
+            var f = new Vector3(p.x + 0.5f, 0, p.y + 0.5f) + transform.forward;
+
+            if (oldPos != p)
+            {
+                GameManagerScript.EndTurn();
+                oldPos = p;
+            }
+
         }
 
 
@@ -150,6 +163,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 return;
 
             m_Attacking = true;
+            GameManagerScript.EndTurn();
             var weaponSlot = transform.FindChild("WeaponSlot");
             var anim  = weaponSlot.GetComponent<Animator>();
             anim.SetTrigger("Swing");
@@ -290,6 +304,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
             var f = new Vector3(p.x+0.5f, 0, p.y+0.5f) + transform.forward;
             GUI.Label(new Rect(10, 10, 200, 40), "Positon: "+p);
             GUI.Label(new Rect(10, 20, 200, 40), "Facing: " + new Vec((int)f.x,(int)f.z));
+
+            GUI.Label(new Rect(10, 30, 200, 40), "Current Turn: " + GameManagerScript.turnCount);
+
         }
     }
 }
