@@ -31,6 +31,10 @@ public class GameManagerScript : MonoBehaviour
 
         MersenneTwister mt = new MersenneTwister((uint)seed);
 
+        var wallset = Tileset.GetRandomSet(Tileset.ws_everything);
+        var floorset = Tileset.GetRandomSet(Tileset.fs_everything);
+        var ceilingset = Tileset.GetRandomSet(Tileset.fs_everything);
+
         for (int y = 0; y < stage.height; y++)
         {
             for (int x = 0; x < stage.width; x++)
@@ -38,9 +42,9 @@ public class GameManagerScript : MonoBehaviour
                 var tile = stage[x, y];
                 //if (tile != Tiles.Wall)
                 {
-                    var cell = CreateFloor(x, y, Tileset.GetRandom(Tileset.f_orc));
+                    var cell = CreateFloor(x, y, Tileset.GetRandom(floorset));
                     cell.transform.parent = container.transform;
-                    cell = CreateCeiling(x, y, Tileset.GetRandom(Tileset.f_orc));
+                    cell = CreateCeiling(x, y, Tileset.GetRandom(ceilingset));
                     cell.transform.parent = container.transform;
 
                     if (setPlayer && tile==Tiles.Floor)
@@ -53,7 +57,7 @@ public class GameManagerScript : MonoBehaviour
 
                 if (tile == Tiles.Wall)
                 {
-                    var tileId = Tileset.GetRandom(Tileset.w_orc);
+                    var tileId = Tileset.GetRandom(wallset);
                     var cell = CreateWall(x, y, tileId);
                     cell.transform.parent = container.transform;
                 }

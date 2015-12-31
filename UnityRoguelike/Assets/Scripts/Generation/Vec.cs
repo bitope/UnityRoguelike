@@ -8,9 +8,8 @@ namespace UnityRoguelike
     [Serializable]
     public class Vec
     {
-
-        public int x;
-        public int y;
+        public readonly int x;
+        public readonly int y;
 
         public Vec(int x, int y)
         {

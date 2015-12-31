@@ -122,10 +122,8 @@ namespace UnityRoguelike
         private static Rect PosAndSize(Vec pos, Vec size)
         {
             var r = new Rect(0, 0, 0, 0);
-            r.pos.x = pos.x;
-            r.pos.y = pos.y;
-            r.size.x = size.x;
-            r.size.y = size.y;
+            r.pos = new Vec(pos.x,pos.y);
+            r.size = new Vec(size.x,size.y);
             return r;
         }
 

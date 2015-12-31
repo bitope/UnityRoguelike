@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityRoguelike;
 using Random = UnityEngine.Random;
+using Rect = UnityEngine.Rect;
 
 namespace UnityStandardAssets.Characters.FirstPerson
 {
@@ -283,7 +285,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         void OnGUI()
         {
-            GUI.Label(new Rect(10, 10, 200, 40), "Speed: "+m_Attacking );
+            var p = new Vec((int) (transform.position.x+0.5f), (int) (transform.position.z+0.5f));
+            //Physics.Raycast(new Vector3(p.x,0,p.y),transform.forward,1.0f)
+            var f = new Vector3(p.x+0.5f, 0, p.y+0.5f) + transform.forward;
+            GUI.Label(new Rect(10, 10, 200, 40), "Positon: "+p);
+            GUI.Label(new Rect(10, 20, 200, 40), "Facing: " + new Vec((int)f.x,(int)f.z));
         }
     }
 }

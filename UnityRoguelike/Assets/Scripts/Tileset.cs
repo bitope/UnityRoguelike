@@ -1,599 +1,8 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Configuration;
-using System.Text;
-using UnityEngine;
-using UnityEngine.Assertions;
+using System.Resources;
 
 namespace Dungeon
 {
-    public enum DungeonFeatureType
-    {
-        DNGN_UNSEEN = 0, // must be zero
-        DNGN_CLOSED_DOOR,
-        DNGN_RUNED_DOOR,
-        DNGN_SEALED_DOOR,
-        DNGN_TREE,
-        DNGN_METAL_WALL,
-        DNGN_CRYSTAL_WALL,
-        DNGN_ROCK_WALL,
-        DNGN_SLIMY_WALL,
-        DNGN_STONE_WALL,
-        DNGN_PERMAROCK_WALL, // for undiggable walls
-        DNGN_CLEAR_ROCK_WALL, // transparent walls
-        DNGN_CLEAR_STONE_WALL,
-        DNGN_CLEAR_PERMAROCK_WALL,
-        DNGN_GRATE,
-        DNGN_OPEN_SEA, // Shoals equivalent for permarock
-        DNGN_LAVA_SEA, // Gehenna equivalent for permarock
-        DNGN_ORCISH_IDOL,
-        DNGN_GRANITE_STATUE,
-        DNGN_MALIGN_GATEWAY,
-        
-        DNGN_LAVA            = 30,
-        DNGN_DEEP_WATER,
-        DNGN_SHALLOW_WATER,
-        DNGN_FLOOR,
-        DNGN_OPEN_DOOR,
-
-        NUM_FEATURES
-    }
-
-    public static class Util
-    {
-        public static Vector2 GetTileUvOffset(int tileId)
-        {
-            int x = tileId%32;
-            int y = tileId/32;
-
-            float _x = x/32.0f;
-            // subtract height of one tile, to pull the offset to the correct 
-            // position. (otherwise you get the top-left corner instead of the bottom-left.)
-            float _y = 1.0f - ((y + 1)/32.0f); // -(1/32.0f); 
-
-            return new Vector2(_x, _y);
-        }
-
-        public static void FixCubeUv(GameObject cube)
-        {
-            var mf = cube.GetComponent<MeshFilter>();
-            Mesh mesh = null;
-            if (mf != null)
-                mesh = mf.mesh;
-
-            if (mesh == null || mesh.uv.Length != 24)
-            {
-                Debug.LogError("This is prob. not a primitive.cube - Aborting.");
-                return;
-            }
-
-            var uvs = mesh.uv;
-
-            //// Front
-            //uvs[0] = new Vector2(0, 0);
-            //uvs[1] = new Vector2(1, 0);
-            //uvs[2] = new Vector2(0, 1);
-            //uvs[3] = new Vector2(1, 1);
-
-            //// Top
-            //uvs[8] = new Vector2(0, 0);
-            //uvs[9] = new Vector2(1, 0);
-            //uvs[4] = new Vector2(0, 1);
-            //uvs[5] = new Vector2(1, 1);
-
-            // Back  - Needs to be flipped top 2 bottom. 
-            uvs[10] = new Vector2(0, 1);
-            uvs[11] = new Vector2(1, 1);
-            uvs[6] = new Vector2(0, 0);
-            uvs[7] = new Vector2(1, 0);
-
-            //// Bottom
-            //uvs[12] = new Vector2(0, 0);
-            //uvs[14] = new Vector2(1, 0);
-            //uvs[15] = new Vector2(0, 1);
-            //uvs[13] = new Vector2(1, 1);
-
-            //// Left
-            //uvs[16] = new Vector2(0, 0);
-            //uvs[18] = new Vector2(1, 0);
-            //uvs[19] = new Vector2(0, 1);
-            //uvs[17] = new Vector2(1, 1);
-
-            //// Right        
-            //uvs[20] = new Vector2(0, 0);
-            //uvs[22] = new Vector2(1, 0);
-            //uvs[23] = new Vector2(0, 1);
-            //uvs[21] = new Vector2(1, 1);
-
-            mesh.uv = uvs;
-        }
-
-
-        public static bool XChanceInY(int x, int y)
-        {
-            if (x <= 0)
-                return false;
-            if (x >= y)
-                return true;
-
-            return UnityEngine.Random.Range(0, y) < x;
-        }
-    }
-
-    public static class C
-    {
-        public const int GXM = 80;
-        public const int GYM = 70;
-        public const int INFINITE_DISTANCE = 30000;
-        public const int GDM = 105;
-        public const int BOUNDARY_BORDER = 1;
-        public const int MAPGEN_BORDER = 2;
-        public const int LABYRINTH_BORDER = 4;
-        public const int X_BOUND_1 = (-1 + BOUNDARY_BORDER);
-        public const int X_BOUND_2 = (GXM - BOUNDARY_BORDER);
-        public const int X_WIDTH = (X_BOUND_2 - X_BOUND_1 + 1);
-        public const int Y_BOUND_1 = (-1 + BOUNDARY_BORDER);
-        public const int Y_BOUND_2 = (GYM - BOUNDARY_BORDER);
-        public const int Y_WIDTH = (Y_BOUND_2 - Y_BOUND_1 + 1);
-
-        public const int LOS_RADIUS = 7;
-    }
-
-    public class Map
-    {
-        public int width;
-        public int height;
-
-        public int[,] tiles;
-
-        public Map()
-        {
-            tiles = new int[C.GXM,C.GYM];
-            width = C.GXM;
-            height = C.GYM;
-
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    tiles[x, y] = (int)DungeonFeatureType.DNGN_ROCK_WALL;
-                }
-            }
-        }
-
-        public bool MapBounds(CoordDef c)
-        {
-            return c.x >= 0 && c.x < width-1 && c.y >= 0 && c.y < height-1;
-        }
-
-        public bool InMap(CoordDef c)
-        {
-            return MapBounds(c) && tiles[c.x, c.y] != 0;
-        }
-
-        public IEnumerable<CoordDef> GetIterator()
-        {
-            return CoordDef.RectangleEnumerable(new CoordDef(0, 0), new CoordDef(width - 1, height - 1));
-        }
-    }
-
-    public class CoordDef
-    {
-        private Vector2 coord;
-
-        public int x { get { return (int)coord.x;  } }
-        public int y { get { return (int)coord.y; } }
-
-        public static readonly CoordDef[] Compass = new CoordDef[9]
-        {
-            new CoordDef(0,-1), 
-            new CoordDef(1,-1), 
-            new CoordDef(1,0), 
-            new CoordDef(1,1), 
-            new CoordDef(0,1), 
-            new CoordDef(-1,1), 
-            new CoordDef(-1,0), 
-            new CoordDef(-1,-1), 
-            new CoordDef(0,0), 
-        };
-
-        public static IEnumerable<CoordDef> AdjacentEnumerable(CoordDef c)
-        {
-            for (int i = 0; i < 9; i++)
-            {
-                var cell = c + Compass[i];
-                if (MapBounds(cell))
-                    yield return cell;
-            }
-        }
-
-        public static IEnumerable<CoordDef> RectangleEnumerable(CoordDef corner1, CoordDef corner2)
-        {
-            var tx = Math.Min(corner1.x, corner2.x);
-            var ty = Math.Min(corner1.y, corner2.y);
-            var bx = Math.Max(corner1.x, corner2.x);
-            var by = Math.Max(corner1.y, corner2.y);
-
-            for (int x = tx; x < bx; x++)
-            {
-                for (int y = ty; y < by; y++)
-                {
-                    yield return new CoordDef(x,y);
-                }
-            }
-        }
-
-        public CoordDef(int x, int y)
-        {
-            coord = new Vector2(x,y);
-        }
-
-        public static CoordDef operator +(CoordDef a, CoordDef b)
-        {
-            return new CoordDef(a.x+b.x, a.y+b.y);
-        }
-
-        public static CoordDef operator -(CoordDef a, CoordDef b)
-        {
-            return new CoordDef(b.x - a.x, b.y - a.y);
-        }
-
-        public static bool InBoundsX(int x)
-        {
-            return x > C.X_BOUND_1 && x < C.X_BOUND_2;
-        }
-
-        public static bool InBoundsY(int y)
-        {
-            return y > C.Y_BOUND_1 && y < C.Y_BOUND_2;
-        }
-
-        public static bool InBounds(int x, int y)
-        {
-            return x > C.X_BOUND_1 && x < C.X_BOUND_2 && y > C.Y_BOUND_1 && y < C.Y_BOUND_2;
-        }
-
-        // Returns true if inside the area the player can map (ie inclusive).
-        // Note that terrain features should be in_bounds() leaving an outer
-        // ring of rock to frame the level.
-        public static bool MapBounds(int x, int y)
-        {
-            return x >= C.X_BOUND_1 && x <= C.X_BOUND_2 && y >= C.Y_BOUND_1 && y <= C.Y_BOUND_2;
-        }
-
-        public static bool InBounds(CoordDef p)
-        {
-            return InBounds(p.x, p.y);
-        }
-
-        public static bool MapBounds(CoordDef p)
-        {
-            return MapBounds(p.x, p.y);
-        }
-
-        public static CoordDef ClampMapBounds(CoordDef p)
-        {
-            int x = Math.Abs(p.x) % (C.GXM - 1) + C.MAPGEN_BORDER - 1;
-            int y = Math.Abs(p.y) % (C.GYM - 1) + C.MAPGEN_BORDER - 1;
-            return new CoordDef(x,y);
-        }
-
-        public static CoordDef ClampInBounds(CoordDef p)
-        {
-            return new CoordDef(Math.Min(C.X_BOUND_2 - 1, Math.Max(C.X_BOUND_1 + 1, p.x)), Math.Min(C.Y_BOUND_2 - 1, Math.Max(C.Y_BOUND_1 + 1, p.y)));
-        }
-
-        public static bool MapBoundsWithMargin(CoordDef p, int margin)
-        {
-            return p.x >= C.X_BOUND_1 + margin && p.x <= C.X_BOUND_2 - margin && p.y >= C.Y_BOUND_1 + margin && p.y <= C.Y_BOUND_2 - margin;
-        }
-
-        public static int GridDistance(CoordDef p1, CoordDef p2)
-        {
-            //rdist
-            return Math.Max(Math.Abs(p2.x - p1.x), Math.Abs(p2.y - p1.y));
-        }
-
-        public static int Distance2(CoordDef p1, CoordDef p2)
-        {
-            return (int) Vector2.Distance(p1.coord, p2.coord);
-        }
-
-        public static bool Adjacent(CoordDef p1, CoordDef p2)
-        {
-            return GridDistance(p1, p2) <= 1;
-        }
-
-        public bool Origin()
-        {
-            return x == 0 && y == 0;
-        }
-
-    }
-
-    public class DungeonGenerator
-    {
-        public List<CoordDef> store;
-        public Map mapLines;
-
-        public DungeonGenerator()
-        {
-            mapLines = new Map();    
-        }
-
-        public static float CubicRoot(double n)
-        {
-            return (float) (Math.Pow(n, (1.0 / 3.0)));
-        }
-
-        public CoordDef PullRandom()
-        {
-            if (!store.Any())
-                return new CoordDef(0,0);
-            // The cell to be pulled is selected 
-            // randomly from the store if N_cells_in_store < 125, and from the top 
-            // 25 * cube_root(N_cells_in_store) otherwise.
-            int index = 0;
-
-            if (store.Count < 125)
-            {
-                index = UnityEngine.Random.Range(0, store.Count);
-            }
-            else
-            {
-                var s = (int)(CubicRoot(store.Count)*25)-1;
-                index = UnityEngine.Random.Range(s, store.Count);
-            }
-            var r = store[index];
-            store.RemoveAt(index);
-            return r;
-        }
-
-        public bool InMap(CoordDef c)
-        {
-            return mapLines != null ? mapLines.InMap(c) : CoordDef.InBounds(c);
-        }
-
-        public int Grid(CoordDef c)
-        {
-
-            return mapLines.tiles[c.x, c.y];
-        }
-
-        public bool Diggable(CoordDef c)
-        {
-            if (CoordDef.MapBounds(c))
-                return Grid(c) == (int) DungeonFeatureType.DNGN_ROCK_WALL; // && !map_masked(c, MMT_VAULT)
-            return false;
-        }
-
-        public bool Dug(CoordDef c)
-        {
-            if (CoordDef.MapBounds(c))
-                return Grid(c) == (int)DungeonFeatureType.DNGN_FLOOR;
-            return false;
-        }
-
-        public void DigCell(CoordDef c)
-        {
-            Assert.IsTrue(InMap(c));
-
-            if (!Diggable(c))
-                return;
-
-            mapLines.tiles[c.x, c.y] = (int) DungeonFeatureType.DNGN_FLOOR;
-
-            var order = new []{0, 1, 2, 3, 4, 5, 6, 7};
-            for (int d = 8; d > 0; d--)
-            {
-                int ornd = UnityEngine.Random.Range(0,d);
-
-                CoordDef neigh = c + CoordDef.Compass[order[ornd]];
-                order[ornd] = order[d - 1];
-
-                if (!InMap(neigh) || !Diggable(neigh))
-                    continue;
-
-                store.Add(neigh);
-                //store.push_back(neigh);
-            }
-        }
-
-        public int NgbCount(CoordDef c)
-        {
-            Assert.IsTrue(InMap(c));
-            int cnt = 0;
-            for (int d = 0; d < 8; d++)
-            {
-                CoordDef neigh = c + CoordDef.Compass[d];
-
-                if (Dug(neigh))
-                   cnt++;
-            }
-            return cnt;
-        }
-
-        public int NgbGroups(CoordDef c)
-        {
-            Assert.IsTrue(InMap(c));
-
-            bool prev2 = false;
-            bool prev = Dug(c + CoordDef.Compass[0]);
-            int cnt = 0;
-            for (int d = 7; d <= 0; d--)
-            {
-                bool cur = Dug(c + CoordDef.Compass[d]);
-                bool xxx = (d & 1) != 0; // d är udda?
-
-                if (cur && !prev && ((d%2 != 0) || !prev2))
-                    cnt++;
-
-                prev2 = prev;
-                prev = cur;
-            }
-
-            if (prev && cnt==0)
-                return 1;
-
-            return cnt;
-        }
-
-        public int CellnumEst(int world, int ngb_min, int ngb_max)
-        {
-            int[] denom = {0, 0, 8, 7, 6, 5, 5, 4, 4, 4, 3, 3};
-
-            if (world <= 0)
-                throw new Exception("Assert world > 0");
-
-            var ngbxx = (ngb_min + ngb_max);
-            if (!(ngbxx>=2 && ngbxx <=12))
-                throw new Exception("Assert min+max mellan 2 och 12");
-
-            return world / denom[ngb_min + ngb_max];
-        }
-
-        public bool IsSeed(CoordDef c) //Fattar inte denna. Är det en seed om EN ruta runtom är Dug?
-        {
-            foreach (var coordDef in CoordDef.AdjacentEnumerable(c))
-            {
-                if (Dug(coordDef))
-                    return true;
-            }
-
-            return false;
-        }
-
-        //Ensure there is something in the store.
-        public int MakeSeed()
-        {
-            int x = 0;
-            int y = 0;
-            int cnt = 0;
-
-            foreach (var c in mapLines.GetIterator())
-            {
-                if (Diggable(c))
-                {
-                    if (IsSeed(c))
-                        store.Add(c);
-                    x += c.x;
-                    y += c.y;
-                    cnt++;
-                }
-            }
-
-            if (store.Any())
-                return cnt;
-
-            if (cnt == 0)
-                return 0;
-
-            CoordDef center = new CoordDef(x/cnt, y/cnt);
-            CoordDef best = null;
-
-            int bdist = int.MaxValue;
-            foreach (var c in mapLines.GetIterator())
-            {
-                if (Diggable(c))
-                {
-                    int dist = CoordDef.Distance2(c , center);
-                    if (dist < bdist)
-                    {
-                        best = c;
-                        bdist = dist;
-                    }
-                }
-            }
-            
-            if (bdist==int.MaxValue)
-                throw new Exception("Bajs.");
-
-            store.Add(best);
-            return cnt;
-        }
-
-        public void Delve(int ngbMin, int ngbMax, int connChance, int cellNum, int top)
-        {
-            //ASSERT_RANGE(ngb_min, 1, 4);
-            //ASSERT(ngb_min <= ngb_max);
-            //ASSERT(ngb_max <= 8);
-            //ASSERT_RANGE(connchance, 0, 101);
-            
-            store = new List<CoordDef>();
-            int world = MakeSeed();
-
-            if (cellNum < 0)
-                cellNum = CellnumEst(world, ngbMin, ngbMax);
-
-            if (cellNum > world)
-                cellNum = world;
-
-            if (cellNum==0)
-                return;
-            
-            // Assert(cellnum <= world);
-
-            int delved = 0;
-            int retries = 0;
-
-            retry:
-            int minseed = delved + 2*ngbMin;
-            CoordDef center = PullRandom();
-
-            if (center.Origin()) // cant do anything.
-                return;
-
-            store.Add(center);
-
-            while (delved < minseed && delved < cellNum)
-            {
-                CoordDef c = PullRandom();
-                if (c.Origin())
-                    break;
-                if (!Diggable(c))
-                    continue;
-
-                if ((CoordDef.Distance2(c, center) > 2 || NgbCount(c) > ngbMax || (NgbGroups(c) > 1 && !Util.XChanceInY(connChance, 100))))
-                {
-                    continue;
-                }
-
-                DigCell(c);
-                delved++;
-            }
-
-            while (delved < cellNum)
-            {
-                CoordDef c = PullRandom();
-
-                if (c.Origin())
-                    break;
-
-                if (!Diggable(c))
-                    continue;
-
-                int ngbCount = NgbCount(c);
-
-                if(ngbCount < ngbMin || ngbCount > ngbMax || (NgbGroups(c)>1&& !Util.XChanceInY(connChance, 100)))
-                {
-                    continue;
-                }
-
-                DigCell(c);
-                delved++;
-            }
-
-            if (delved < cellNum && retries < 50)
-            {
-                Debug.Log("delve() try "+retries+": only "+delved+"/"+cellNum+" done.");
-                MakeSeed();
-                goto retry;
-            }
-        }
-    }
-
-
     public static class Tileset
     {
         //Floors
@@ -601,20 +10,21 @@ namespace Dungeon
         public static int[] f_error = new[] { 1 };
         public static int[] f_grey_dirt = new[] { 2, 3, 4, 5, 6, 7, 8, 9 };
         public static int[] f_grey_dirt_b = new[] { 10, 11, 12, 13, 14, 15, 16, 17 };
-        public static int[] f_pebble_brown = new[] { 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 };
+        public static int[] f_pebble = new[] {18, 19, 20, 21, 22, 23, 24, 25, 26};
+        public static int[] f_pebble_brown = new[] { 27, 28, 29, 30, 31, 32, 33, 34, 35 };
         public static int[] f_pebble_blue = new[] { 36, 37, 38, 39, 40, 41, 42, 43, 44 };
         public static int[] f_pebble_green = new[] { 45, 46, 47, 48, 49, 50, 51, 52, 53 };
-        public static int[] f_cyan = new[] { 54, 55, 56, 57, 58, 59, 60, 61, 62 };
-        public static int[] f_red = new[] { 63, 64, 65, 66, 67, 68, 69, 70, 71 };
-        public static int[] f_magenta = new[] { 72, 73, 74, 75, 76, 77, 78, 79, 80 };
-        public static int[] f_darkgrey = new[] { 81, 82, 83, 84, 85, 86, 87, 88, 89 };
-        public static int[] f_lightblue = new[] { 90, 91, 92, 93, 94, 95, 96, 97, 98 };
-        public static int[] f_lightgreen = new[] { 99, 100, 101, 102, 103, 104, 105, 106, 107 };
-        public static int[] f_lightcyan = new[] { 108, 109, 110, 111, 112, 113, 114, 115, 116 };
-        public static int[] f_lightred = new[] { 117, 118, 119, 120, 121, 122, 123, 124, 125 };
-        public static int[] f_lightmagenta = new[] { 126, 127, 128, 129, 130, 131, 132, 133, 134 };
-        public static int[] f_yellow = new[] { 135, 136, 137, 138, 139, 140, 141, 142, 143 };
-        public static int[] f_white = new[] { 144, 145, 146, 147, 148, 149, 150, 151, 152 };
+        public static int[] f_pebble_cyan = new[] { 54, 55, 56, 57, 58, 59, 60, 61, 62 };
+        public static int[] f_pebble_red = new[] { 63, 64, 65, 66, 67, 68, 69, 70, 71 };
+        public static int[] f_pebble_magenta = new[] { 72, 73, 74, 75, 76, 77, 78, 79, 80 };
+        public static int[] f_pebble_darkgrey = new[] { 81, 82, 83, 84, 85, 86, 87, 88, 89 };
+        public static int[] f_pebble_lightblue = new[] { 90, 91, 92, 93, 94, 95, 96, 97, 98 };
+        public static int[] f_pebble_lightgreen = new[] { 99, 100, 101, 102, 103, 104, 105, 106, 107 };
+        public static int[] f_pebble_lightcyan = new[] { 108, 109, 110, 111, 112, 113, 114, 115, 116 };
+        public static int[] f_pebble_lightred = new[] { 117, 118, 119, 120, 121, 122, 123, 124, 125 };
+        public static int[] f_pebble_lightmagenta = new[] { 126, 127, 128, 129, 130, 131, 132, 133, 134 };
+        public static int[] f_pebble_yellow = new[] { 135, 136, 137, 138, 139, 140, 141, 142, 143 };
+        public static int[] f_pebble_white = new[] { 144, 145, 146, 147, 148, 149, 150, 151, 152 };
         public static int[] f_cave = new[] { 153, 154, 155, 156, 157, 158, 159, 160, 161 };
         public static int[] f_mesh = new[] { 162, 163, 164, 165 };
         public static int[] f_mud = new[] { 166, 167, 168, 169 };
@@ -731,8 +141,13 @@ namespace Dungeon
         public static int[] f_ink = new[] { 918 };
         public static int[] f_liquefaction = new[] { 919, 920 };
 
-        
-        
+        // floor sets
+        public static int[][] fs_grey_dirt = new[] { f_grey_dirt , f_grey_dirt_b };
+        public static int[][] fs_pebble = new[] { f_pebble, f_pebble_brown, f_pebble_blue, f_pebble_green, f_pebble_cyan, f_pebble_red, f_pebble_magenta, f_pebble_darkgrey, f_pebble_lightblue, f_pebble_lightgreen, f_pebble_lightcyan, f_pebble_lightred, f_pebble_lightmagenta, f_pebble_yellow, f_pebble_white };
+        public static int[][] fs_rough = new[] { f_rough_red, f_rough_blue, f_rough_green, f_rough_cyan, f_rough_magenta, f_rough_brown, f_rough_lightgray, f_rough_darkgray, f_rough_lightblue, f_rough_lightgreen, f_rough_lightcyan, f_rough_lightred, f_rough_lightmagenta, f_rough_yellow, f_rough_white };
+        public static int[][] fs_floor_nerves = new [] {f_floor_nerves, f_floor_nerves_blue, f_floor_nerves_green, f_floor_nerves_cyan, f_floor_nerves_magenta, f_floor_nerves_brown, f_floor_nerves_lightgray, f_floor_nerves_darkgray, f_floor_nerves_lightblue, f_floor_nerves_lightgreen, f_floor_nerves_lightcyan, f_floor_nerves_lightred, f_floor_nerves_lightmagenta, f_floor_nerves_yellow, f_floor_nerves_white};
+        public static int[][] fs_everything = new[] { f_grey_dirt, f_grey_dirt_b, f_pebble, f_pebble_brown, f_pebble_blue, f_pebble_green, f_pebble_cyan, f_pebble_red, f_pebble_magenta, f_pebble_darkgrey, f_pebble_lightblue, f_pebble_lightgreen, f_pebble_lightcyan, f_pebble_lightred, f_pebble_lightmagenta, f_pebble_yellow, f_pebble_white, f_cave, f_mesh, f_mud, f_ice, f_lair, f_orc, f_moss, f_bog_green, f_acidic_floor, f_snake_a, f_snake_c, f_snake_d, f_swamp, f_spider, f_tomb, f_rect_gray, f_floor_vines, f_rough_red, f_rough_blue, f_rough_green, f_rough_cyan, f_rough_magenta, f_rough_brown, f_rough_lightgray, f_rough_darkgray, f_rough_lightblue, f_rough_lightgreen, f_rough_lightcyan, f_rough_lightred, f_rough_lightmagenta, f_rough_yellow, f_rough_white, f_sand, f_cobble_blood, f_marble_floor, f_sandstone_floor, f_volcanic_floor, f_crystal_floor, f_grass, f_grass_flowers_blue, f_grass_flowers_red, f_grass_flowers_yellow, f_grass0_dirt_mix, f_floor_nerves, f_floor_nerves_blue, f_floor_nerves_green, f_floor_nerves_cyan, f_floor_nerves_magenta, f_floor_nerves_brown, f_floor_nerves_lightgray, f_floor_nerves_darkgray, f_floor_nerves_lightblue, f_floor_nerves_lightgreen, f_floor_nerves_lightcyan, f_floor_nerves_lightred, f_floor_nerves_lightmagenta, f_floor_nerves_yellow, f_floor_nerves_white, f_dirt, f_tutorial_pad, f_limestone, f_white_marble, f_sigil, f_infernal, f_infernal_blank, f_labyrinth, f_crypt_domino, f_iron, f_black_cobalt, f_frozen, f_demonic_red, f_demonic_blue, f_demonic_green, f_demonic_cyan, f_demonic_magenta, f_demonic_brown, f_demonic_lightgray, f_demonic_darkgray, f_demonic_lightblue, f_demonic_lightgreen, f_demonic_lightcyan, f_demonic_lightred, f_demonic_lightmagenta, f_demonic_yellow, f_demonic_white, f_green_bones, f_woodground, f_cage, f_etched, f_mosaic, f_lava, f_open_sea, f_deep_water, f_shallow_water, f_shallow_water_disturbance, f_deep_water_murky, f_shallow_water_murky, f_shallow_water_murky_disturbance, f_shoals_deep_water, f_shoals_shallow_water, f_shoals_shallow_water_disturbance, f_ink, f_liquefaction };
+
         //Walls
         public static int[] w_brick_dark_1 = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
         public static int[] w_brick_dark_2 = new[] { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 };
@@ -900,19 +315,35 @@ namespace Dungeon
         public static int[] w_metal_wall_lightgray = new[] { 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018 };
         public static int[] w_metal_wall_darkgray = new[] { 1019, 1020, 1021, 1022, 1023 };
 
+        // wall sets
+
+        public static int[][] ws_everything = new[] { w_brick_dark_1, w_brick_dark_2, w_brick_dark_3, w_brick_dark_4, w_brick_dark_5, w_brick_dark_6, w_brick_brown, w_brick_blue, w_brick_green, w_brick_cyan, w_brick_red, w_brick_magenta, w_brick_lightgray, w_brick_darkgray, w_brick_lightblue, w_brick_lightgreen, w_brick_lightcyan, w_brick_lightred, w_brick_lightmagenta, w_brick_yellow, w_brick_white, w_brick_brown_vines, w_relief_lightgray, w_relief_white, w_relief_darkgray, w_relief_blue, w_relief_green, w_relief_cyan, w_relief_red, w_relief_magenta, w_relief_brown, w_relief_yellow, w_relief_lightblue, w_relief_lightgreen, w_relief_lightcyan, w_relief_lightred, w_relief_lightmagenta, w_beehives, w_lair, w_orc, w_slime, w_slime_stone, w_tomb, w_vault, w_vault_stone, w_zot_blue, w_zot_green, w_zot_cyan, w_zot_red, w_zot_magenta, w_zot_brown, w_zot_lightgray, w_zot_darkgray, w_zot_lightblue, w_zot_lightgreen, w_zot_lightcyan, w_zot_lightred, w_zot_lightmagenta, w_zot_yellow, w_zot_white, w_wall_flesh, w_transparent_flesh, w_wall_vines, w_pebble_red, w_pebble_blue, w_pebble_green, w_pebble_cyan, w_pebble_magenta, w_pebble_brown, w_pebble_lightgray, w_pebble_darkgray, w_pebble_lightblue, w_pebble_lightgreen, w_pebble_lightcyan, w_pebble_lightred, w_pebble_lightmagenta, w_pebble_yellow, w_pebble_white, w_pebble_goldbrown, w_pebble_darkbrown, w_shoals_wall, w_brick_gray, w_stone_smooth, w_marble_wall, w_sandstone_wall, w_volcanic_wall, w_volcanic_wall_blue, w_crystal_wall, w_snake, w_spider, w_stone_gray, w_stone_white, w_stone_dark, w_stone_black_marked, w_undead_lightgray, w_undead_white, w_undead_darkgray, w_undead_blue, w_undead_green, w_undead_cyan, w_undead_red, w_undead_magenta, w_undead_brown, w_undead_yellow, w_undead_lightblue, w_undead_lightgreen, w_undead_lightcyan, w_undead_lightred, w_undead_lightmagenta, w_church, w_abyss, w_abyss_brown, w_abyss_green, w_abyss_cyan, w_abyss_blue, w_abyss_magenta, w_abyss_lightred, w_abyss_yellow, w_abyss_lightgreen, w_abyss_lightcyan, w_abyss_lightblue, w_abyss_lightmagenta, w_abyss_darkgray, w_abyss_lightgray, w_abyss_white, w_hell, w_ice_wall, w_icy_stone, w_ice_block, w_lab_rock, w_lab_stone, w_lab_metal, w_crypt, w_crypt_metal, w_cobalt_rock, w_cobalt_stone, w_catacombs, w_stone2_gray, w_stone2_dark, w_stone2_blue, w_stone2_green, w_stone2_cyan, w_stone2_red, w_stone2_magenta, w_stone2_brown, w_stone2_darkgray, w_stone2_yellow, w_stone2_lightblue, w_stone2_lightgreen, w_stone2_lightcyan, w_stone2_lightred, w_stone2_lightmagenta, w_stone2_white, w_transparent_wall, w_transparent_stone, w_mirrored_wall, w_silver_wall, w_metal_wall, w_metal_wall_blue, w_metal_wall_green, w_metal_wall_cyan, w_metal_wall_red, w_metal_wall_magenta, w_metal_wall_lightgray, w_metal_wall_darkgray };
 
         private static System.Random rng;
 
         static Tileset()
         {
-            rng = new System.Random(0);
+            rng = new System.Random();
+        }
+
+        public static int[] GetRandomSet(int[][] sets)
+        {
+            return sets[rng.Next(sets.Length)];
         }
 
         public static int GetRandom(int[] i)
         {
             return i[rng.Next(i.Length)];
         }
+
+        public static int[] Merge(params int[][] sets)
+        {
+            var m = new List<int>();
+            foreach (var i in sets)
+            {
+                m.AddRange(i);
+            }
+            return m.ToArray();
+        }
     }
 }
-
-
