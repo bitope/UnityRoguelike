@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Runtime.InteropServices;
 using Dungeon;
 using UnityEngine;
 using System.Collections;
@@ -7,11 +6,7 @@ using UnityRoguelike;
 
 public class TestMonsterAI : MonoBehaviour
 {
-
     private CharacterController cc;
-    private Vector3 direction;
-    private float nextChange;
-
     private int lastTurn;
     private bool performingTurn = false;
     private Vec currentPosition;
@@ -22,10 +17,7 @@ public class TestMonsterAI : MonoBehaviour
 	void Start ()
 	{
 	    label = transform.FindChild("Label").GetComponent<TextMesh>();
-
 	    cc = GetComponent<CharacterController>();
-        ChangeDirection();
-
 	    currentPosition = Util.GetVecPosition(transform.position);
 	}
 	
@@ -36,12 +28,6 @@ public class TestMonsterAI : MonoBehaviour
 	        PerformTurn();
 
 	    label.text = currentPosition.ToString();
-
-	    //cc.SimpleMove(direction*0.05f);
-	    //cc.SimpleMove(direction * 0.8f);
-	    //nextChange -= Time.deltaTime;
-	    //if (nextChange<0)
-	    //    ChangeDirection();
 	}
 
     void PerformTurn()
@@ -54,26 +40,21 @@ public class TestMonsterAI : MonoBehaviour
         lastTurn++;
         var gotoPos = GetOpenSpace();
 
-        Vector3 v = new Vector3(gotoPos.x,0,gotoPos.y);
+        var v = new Vector3(gotoPos.x,0,gotoPos.y);
         StartCoroutine(WaitAndMove(0.2f, transform.position, v));
-    }
-
-    void ChangeDirection()
-    {
-        direction = Random.onUnitSphere;
-        direction.y = 0;
-        nextChange = 2;
     }
 
     IEnumerator WaitAndMove(float delayTime, Vector3 start, Vector3 end)
     {
-        //yield return new WaitForSeconds(delayTime); // start at time X
-        float startTime = Time.time; // Time.time contains current frame time, so remember starting point
-
-        while (Time.time - startTime <= delayTime)
-        { // until one second passed
-            transform.position = Vector3.Lerp(start, end, (Time.time - startTime)/delayTime); // lerp from A to B in delay seconds
-            yield return null; // wait for next frame
+        float startTime = Time.time; 
+        while (!MoveTowardsTarget(end))
+        {
+            if ((Time.time - startTime) > 10)
+            {
+                Debug.LogError("WaitAndMove: " + name + " stuck for more than 10 sec. Aborting.");
+                break;
+            }
+            yield return null;
         }
         currentPosition = Util.GetVecPosition(transform.position);
         performingTurn = false;
@@ -88,6 +69,27 @@ public class TestMonsterAI : MonoBehaviour
             return stage[p.x, p.y] == Tiles.Floor;
         }).ToList();
 
+        if (!open.Any())
+        {
+            Debug.LogError("GetOpenSpace: "+name + " has nowhere to go. Standing still.");
+            return currentPosition;
+        }
+
         return GameManagerScript.rng.PickOne(open)+currentPosition;
     }
+
+    private bool MoveTowardsTarget(Vector3 target)
+    {
+        var offset = target - transform.position;
+        if (offset.magnitude <= .3f) //We have reached acceptable tolerance.
+            return true;
+
+        //If we're further away than .3 unit, move towards the target.
+        //The minimum allowable tolerance varies with the speed of the object and the framerate. 
+        // 2 * tolerance must be >= moveSpeed / framerate or the object will jump right over the stop.
+        offset = offset.normalized*2f;
+        cc.Move(offset*Time.deltaTime);
+        return false;
+    }
+
 }
