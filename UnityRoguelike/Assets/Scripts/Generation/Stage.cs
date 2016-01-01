@@ -18,6 +18,7 @@ namespace UnityRoguelike
         public readonly List<Rect> RoomRects;
 
         public Actor Player;
+        public List<Actor> Creatures; 
 
         public Stage(int width, int height)
         {
@@ -25,6 +26,7 @@ namespace UnityRoguelike
             this.height = height;
             tiles = new int[width,height];
             RoomRects = new List<Rect>();
+            Creatures = new List<Actor>();
         }
 
         public Tiles this[int x, int y]

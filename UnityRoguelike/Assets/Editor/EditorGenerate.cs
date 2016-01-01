@@ -21,17 +21,15 @@ public class EditorGenerate : EditorWindow {
             CreateAllMaterials();
         }
 
-        if (GUILayout.Button("Create doublesided Quad."))
-        {
-            CreateDoubleSidedQuad();
-        }
+        //if (GUILayout.Button("Create doublesided Quad."))
+        //{
+        //    CreateDoubleSidedQuad();
+        //}
 
-        if (GUILayout.Button("Create crossed doublesided quads."))
-        {
-            CrossMesh();
-        }
-
-
+        //if (GUILayout.Button("Create crossed doublesided quads."))
+        //{
+        //    CrossMesh();
+        //}
     }
 
     private void CreateDoubleSidedQuad()
@@ -56,10 +54,6 @@ public class EditorGenerate : EditorWindow {
             new Vector2(0, 1),
             new Vector2(0, 0),
 
-            //new Vector2(0, 1),
-            //new Vector2(1, 1),
-            //new Vector2(1, 0),
-            //new Vector2(0, 0),
             new Vector2(1, 1),
             new Vector2(0, 1),
             new Vector2(0, 0),
@@ -173,11 +167,7 @@ public class EditorGenerate : EditorWindow {
         mesh.uv = uv;
         mesh.triangles = triangles;
         mesh.RecalculateNormals();
-
         AssetDatabase.CreateAsset(mesh, "Assets/Automated/CrossMesh.asset");
-
-        //mesh.uv = uvunflipped;
-        //AssetDatabase.CreateAsset(mesh, "Assets/Automated/DoublesidedQuadUnflippedUV.asset");
     }
 
     private void CreateAllMaterials()

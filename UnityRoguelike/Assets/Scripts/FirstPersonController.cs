@@ -46,6 +46,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private float curSpeed=0f;
 
+        private Actor actorRef = new Actor();
         private Vec oldPos;
 
         void Awake()
@@ -306,13 +307,23 @@ namespace UnityStandardAssets.Characters.FirstPerson
         void RegisterWithStage()
         {
             Debug.Log(name + " has registered.");
-            GameManagerScript.stage.Player = new Actor();
+            actorRef = new Actor();
+            GameManagerScript.stage.Player = actorRef;
             GameManagerScript.stage.Player.PropertyChanged += Player_PropertyChanged;
         }
 
         void Player_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            Debug.Log(e.PropertyName+" has changed.");
+            //Debug.Log(e.PropertyName+" has changed.");
+        }
+
+        void OnTriggerEnter(Collider other)
+        {
+            Debug.Log("OnTriggerEnter: "+other.name);
+            //if (other.gameObject.CompareTag("Pick Up"))
+            //{
+            //    other.gameObject.SetActive(false);
+            //}
         }
 
         void OnGUI()

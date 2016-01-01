@@ -42,8 +42,6 @@ public class GameManagerScript : MonoBehaviour
         g.generate(stage);
 
 
-        
-
         rng = new MersenneTwister((uint)seed);
 
         var wallset = Tileset.GetRandomSet(Tileset.ws_everything);
@@ -107,7 +105,6 @@ public class GameManagerScript : MonoBehaviour
                     var cell = CreateLight(x, y);
                     //var cell = Instantiate(GameObject.Find("crumbled_column_1"));
                     cell.name = "Brazier_" + x + "_" + y;
-                    Debug.Log("Created: " + cell.name);
                     cell.transform.position = new Vector3(x, 0, y);
                     cell.transform.rotation = Quaternion.AngleAxis(45, Vector3.up);
                     cell.transform.parent = container.transform;

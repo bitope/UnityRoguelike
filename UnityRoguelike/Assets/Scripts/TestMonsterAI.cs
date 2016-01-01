@@ -12,14 +12,18 @@ public class TestMonsterAI : MonoBehaviour
     private Vec currentPosition;
 
     private TextMesh label;
-
+    
+    private Actor actorRef;
     // Use this for initialization
 	void Start ()
 	{
 	    label = transform.FindChild("Label").GetComponent<TextMesh>();
 	    cc = GetComponent<CharacterController>();
 	    currentPosition = Util.GetVecPosition(transform.position);
-	}
+
+        actorRef = new Actor();
+        GameManagerScript.stage.Creatures.Add(actorRef);	
+    }
 	
 	// Update is called once per frame
 	void Update ()
@@ -39,6 +43,7 @@ public class TestMonsterAI : MonoBehaviour
 
         lastTurn++;
         var gotoPos = GetOpenSpace();
+        actorRef.NextPosition = gotoPos;
 
         var v = new Vector3(gotoPos.x,0,gotoPos.y);
         StartCoroutine(WaitAndMove(0.2f, transform.position, v));
@@ -57,6 +62,8 @@ public class TestMonsterAI : MonoBehaviour
             yield return null;
         }
         currentPosition = Util.GetVecPosition(transform.position);
+
+        actorRef.Position = currentPosition;
         performingTurn = false;
     }
 
@@ -66,7 +73,10 @@ public class TestMonsterAI : MonoBehaviour
         var open = Direction.all.Where(d =>
         {
             var p = currentPosition + d;
-            return stage[p.x, p.y] == Tiles.Floor;
+            bool isFloor  = stage[p.x, p.y] == Tiles.Floor;
+            bool isOccupied = stage.Creatures.Any(c => c.Position == p);
+            bool isReserved = stage.Creatures.Any(c => c.NextPosition == p);
+            return (isFloor && !isOccupied);
         }).ToList();
 
         if (!open.Any())
