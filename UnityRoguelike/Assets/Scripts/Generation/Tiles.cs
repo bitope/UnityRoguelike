@@ -17,4 +17,6 @@ namespace UnityRoguelike
         Brazier,
         Pillar
     }
+
+
 }

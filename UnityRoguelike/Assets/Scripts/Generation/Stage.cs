@@ -35,7 +35,27 @@ namespace UnityRoguelike
             set { tiles[x, y] = (int) value; }
         }
 
+        public IEnumerable<Vec> GetAll(Tiles tile)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if (tiles[x,y]==(int)tile)
+                        yield return new Vec(x,y);
+                }
+            }
+        }
+
         public Rect Bounds { get{ return new Rect(0, 0, width, height); } }
 
+        public bool isOpenSpace(int x, int y)
+        {
+            var p = new Vec(x, y);
+            bool isFloor = tiles[p.x, p.y] != (int) Tiles.Wall;
+            bool isOccupied = Creatures.Any(c => c.Position == p);
+            bool isReserved = Creatures.Any(c => c.NextPosition == p);
+            return (isFloor && !isOccupied && !isReserved);
+        }
     }
 }

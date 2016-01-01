@@ -1,0 +1,19 @@
+Moving up and down between levels.
+Build level-graph with different branches.
+
+Loading / Saving entire state.
+
+Inventory screen
+
+UI
+
+PAthfinding A* and Dijkestra.
+
+Goalbased AI.
+
+Statemachine for Enemies
+
+Target selector.
+Target selector for RANGED.
+
+

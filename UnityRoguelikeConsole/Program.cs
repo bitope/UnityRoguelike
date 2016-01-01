@@ -44,36 +44,51 @@ namespace UnityRoguelikeConsole
             g.numRoomTries = 500;
             g.generate(stage);
 
+
+            DijkstraMap dm = new DijkstraMap(stage,0);
+            //dm.Compute(1,1,true);
+            dm.Compute(stage.GetAll(Tiles.Brazier),false);
+            dm.Display();
+
+            dm.CalculatePath(21, 21);
+            var path = dm.GetReversePath().ToList();
+
             Console.WriteLine("Seed: "+seed);
 
+            int p = 0;
             for (int y = stage.height-1; y >=0; y--)
             {
                 for (int x = 0; x < stage.width; x++)
                 {
+                    if (path.Contains(new Vec(x, y)))
+                    {
+                        Console.Write(path.IndexOf(new Vec(x,y)).ToString("D2"));
+                        continue;
+                    }
                     //Console.Write(stage[x,y].ToString().Substring(0,1));
                     switch (stage[x, y])
                     {
                         case Tiles.Floor:
-                            Console.Write('.');
+                            Console.Write(" .");
                             break;
                         case Tiles.Wall:
-                            Console.Write('#');
+                            Console.Write(" #");
                             break;
                         case Tiles.OpenDoor_NS:
                         case Tiles.OpenDoor_EW:
-                            Console.Write(' ');
+                            Console.Write("  ");
                             break;
                         case Tiles.ClosedDoor_EW:
-                            Console.Write('|');
+                            Console.Write("||");
                             break;
                         case Tiles.ClosedDoor_NS:
-                            Console.Write('-');
+                            Console.Write("==");
                             break;
                         case Tiles.Brazier:
-                            Console.Write('b');
+                            Console.Write(" b");
                             break;
                         case Tiles.Pillar:
-                            Console.Write('p');
+                            Console.Write(" p");
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();

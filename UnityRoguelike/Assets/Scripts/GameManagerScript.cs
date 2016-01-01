@@ -102,8 +102,8 @@ public class GameManagerScript : MonoBehaviour
 
                 if (tile == Tiles.Brazier)
                 {
-                    var cell = CreateLight(x, y);
-                    //var cell = Instantiate(GameObject.Find("crumbled_column_1"));
+                    //var cell = CreateLight(x, y);
+                    var cell = Instantiate(GameObject.Find("Brazier"));
                     cell.name = "Brazier_" + x + "_" + y;
                     cell.transform.position = new Vector3(x, 0, y);
                     cell.transform.rotation = Quaternion.AngleAxis(45, Vector3.up);
