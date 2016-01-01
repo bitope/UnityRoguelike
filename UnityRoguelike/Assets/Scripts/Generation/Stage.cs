@@ -17,6 +17,8 @@ namespace UnityRoguelike
         
         public readonly List<Rect> RoomRects;
 
+        public Actor Player;
+
         public Stage(int width, int height)
         {
             this.width = width;

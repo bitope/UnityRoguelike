@@ -16,8 +16,15 @@ public class GameManagerScript : MonoBehaviour
 
     public static Stage stage = null;
 
+    void Awake()
+    {
+        Debug.Log("GM Awake called.");
+    }
+
     void Start()
     {
+        Debug.Log("GM Start called.");
+
         Cursor.lockState = CursorLockMode.Confined;
 
         bool setPlayer = true;
@@ -33,6 +40,9 @@ public class GameManagerScript : MonoBehaviour
 
         g.numRoomTries = 500;
         g.generate(stage);
+
+
+        
 
         rng = new MersenneTwister((uint)seed);
 
@@ -57,6 +67,7 @@ public class GameManagerScript : MonoBehaviour
                         setPlayer = false;
                         var vv = cell.transform.position;
                         GameObject.Find("Player").transform.position = new Vector3(vv.x, 0.15f, vv.z);
+                        GameObject.Find("Player").SendMessage("RegisterWithStage", SendMessageOptions.DontRequireReceiver);
                     }
                 }
 

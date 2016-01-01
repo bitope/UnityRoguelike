@@ -48,9 +48,16 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private Vec oldPos;
 
+        void Awake()
+        {
+            Debug.Log("Player Awake called.");
+        }
+
         // Use this for initialization
         private void Start()
         {
+            Debug.Log("Player Start called.");
+
             attackPosition = new Vector3(-0.05f, 0.1f, 0.06f);
             attackRotation = new Vector3(4.5f, -20f, -15.5f);
 
@@ -102,12 +109,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             if (oldPos != p)
             {
+                GameManagerScript.stage.Player.Position = p;
                 GameManagerScript.EndTurn();
                 oldPos = p;
             }
 
         }
-
 
         private void PlayLandingSound()
         {
@@ -115,7 +122,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             //m_AudioSource.Play();
             //m_NextStep = m_StepCycle + .5f;
         }
-
 
         private void FixedUpdate()
         {
@@ -295,6 +301,18 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 return;
             }
             body.AddForceAtPosition(m_CharacterController.velocity*0.1f, hit.point, ForceMode.Impulse);
+        }
+
+        void RegisterWithStage()
+        {
+            Debug.Log(name + " has registered.");
+            GameManagerScript.stage.Player = new Actor();
+            GameManagerScript.stage.Player.PropertyChanged += Player_PropertyChanged;
+        }
+
+        void Player_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            Debug.Log(e.PropertyName+" has changed.");
         }
 
         void OnGUI()

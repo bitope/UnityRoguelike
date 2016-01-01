@@ -21,6 +21,163 @@ public class EditorGenerate : EditorWindow {
             CreateAllMaterials();
         }
 
+        if (GUILayout.Button("Create doublesided Quad."))
+        {
+            CreateDoubleSidedQuad();
+        }
+
+        if (GUILayout.Button("Create crossed doublesided quads."))
+        {
+            CrossMesh();
+        }
+
+
+    }
+
+    private void CreateDoubleSidedQuad()
+    {
+        Vector3[] vertices = new Vector3[]
+        {
+            new Vector3(0.5f, 0.5f, 0),
+            new Vector3(0.5f, -0.5f, 0),
+            new Vector3(-0.5f, 0.5f, 0),
+            new Vector3(-0.5f, -0.5f, 0),
+
+            new Vector3(0.5f, 0.5f, 0),
+            new Vector3(-0.5f, 0.5f, 0),
+            new Vector3(-0.5f, -0.5f, 0),
+            new Vector3(0.5f, -0.5f, 0),
+        };
+
+        Vector2[] uv = new Vector2[]
+        {
+            new Vector2(1, 1),
+            new Vector2(1, 0),
+            new Vector2(0, 1),
+            new Vector2(0, 0),
+
+            //new Vector2(0, 1),
+            //new Vector2(1, 1),
+            //new Vector2(1, 0),
+            //new Vector2(0, 0),
+            new Vector2(1, 1),
+            new Vector2(0, 1),
+            new Vector2(0, 0),
+            new Vector2(1, 0),
+        };
+
+        Vector2[] uvunflipped = new Vector2[]
+        {
+            new Vector2(1, 1),
+            new Vector2(1, 0),
+            new Vector2(0, 1),
+            new Vector2(0, 0),
+
+            new Vector2(0, 1),
+            new Vector2(1, 1),
+            new Vector2(1, 0),
+            new Vector2(0, 0),
+        };
+
+        int[] triangles = new int[]
+        {
+            0, 1, 2,
+            2, 1, 3,
+
+            4, 5, 6,
+            4, 6, 7
+        };
+
+        Mesh mesh = new Mesh();
+        mesh.vertices = vertices;
+        mesh.uv = uv;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+
+        AssetDatabase.CreateAsset(mesh, "Assets/Automated/DoublesidedQuad.asset");
+
+        mesh = new Mesh();
+        mesh.vertices = vertices;
+        mesh.uv = uvunflipped;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+        AssetDatabase.CreateAsset(mesh, "Assets/Automated/DoublesidedQuadUnflippedUV.asset");
+    }
+
+    private void CrossMesh()
+    {
+        Mesh mesh = new Mesh();
+
+        Vector3[] vertices = new Vector3[]
+        {
+            new Vector3(0.5f, 0.5f, 0),
+            new Vector3(0.5f, -0.5f, 0),
+            new Vector3(-0.5f, 0.5f, 0),
+            new Vector3(-0.5f, -0.5f, 0),
+
+            new Vector3(0.5f, 0.5f, 0),
+            new Vector3(-0.5f, 0.5f, 0),
+            new Vector3(-0.5f, -0.5f, 0),
+            new Vector3(0.5f, -0.5f, 0),
+
+            new Vector3(0.0f, 0.5f, 0.5f),
+            new Vector3(0.0f, -0.5f, 0.5f),
+            new Vector3(0.0f, 0.5f, -0.5f),
+            new Vector3(0.0f, -0.5f, -0.5f),
+
+            new Vector3(0.0f, 0.5f, 0.5f),
+            new Vector3(0.0f, 0.5f, -0.5f),
+            new Vector3(0.0f, -0.5f, -0.5f),
+            new Vector3(0.0f, -0.5f, 0.5f),
+        };
+
+        Vector2[] uv = new Vector2[]
+        {
+            new Vector2(1, 1),
+            new Vector2(1, 0),
+            new Vector2(0, 1),
+            new Vector2(0, 0),
+
+            new Vector2(1, 1),
+            new Vector2(0, 1),
+            new Vector2(0, 0),
+            new Vector2(1, 0),
+
+            new Vector2(1, 1),
+            new Vector2(1, 0),
+            new Vector2(0, 1),
+            new Vector2(0, 0),
+
+            new Vector2(1, 1),
+            new Vector2(0, 1),
+            new Vector2(0, 0),
+            new Vector2(1, 0),
+        };
+
+        int[] triangles = new int[]
+        {
+            0, 1, 2,
+            2, 1, 3,
+
+            4, 5, 6,
+            4, 6, 7,
+
+            8,9,10,
+            10,9,11,
+
+            12,13,14,
+            12,14,15
+        };
+
+        mesh.vertices = vertices;
+        mesh.uv = uv;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+
+        AssetDatabase.CreateAsset(mesh, "Assets/Automated/CrossMesh.asset");
+
+        //mesh.uv = uvunflipped;
+        //AssetDatabase.CreateAsset(mesh, "Assets/Automated/DoublesidedQuadUnflippedUV.asset");
     }
 
     private void CreateAllMaterials()
