@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityRoguelike;
@@ -42,8 +43,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private bool m_Attacking;
         private AudioSource m_AudioSource;
 
-        private Vector3 attackPosition;
-        private Vector3 attackRotation;
+        public List<GameObject> pointerList;
 
         private float curSpeed=0f;
 
@@ -60,8 +60,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             Debug.Log("Player Start called.");
 
-            attackPosition = new Vector3(-0.05f, 0.1f, 0.06f);
-            attackRotation = new Vector3(4.5f, -20f, -15.5f);
+            pointerList = new List<GameObject>();
 
             m_CharacterController = GetComponent<CharacterController>();
             m_Camera = Camera.main;
@@ -83,6 +82,15 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 return;
 
             RotateView();
+
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                foreach (var o in pointerList)
+                {
+                    Debug.Log("Activate: "+o.name);
+                    o.transform.SendMessageUpwards("Activate", SendMessageOptions.DontRequireReceiver);
+                }
+            }
 
             // the jump state needs to read here to make sure it is not missed
             if (!m_Jump)
@@ -300,6 +308,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             var x = c.GetComponent<ProximityItemManager>();
             var list = all.Select(i => i.collider.gameObject).ToList();
             x.UpdatePointerList(list);
+            pointerList = list;
         }
 
         private void OnControllerColliderHit(ControllerColliderHit hit)

@@ -86,14 +86,16 @@ public class GameManagerScript : MonoBehaviour
 
                 if (tile == Tiles.ClosedDoor_EW)
                 {
-                    var cell = Instantiate(GameObject.Find("Door"));
-                    cell.transform.position=new Vector3(x,0,y);
+                    var pre = Resources.Load("Prefabs/Decoration/Door") as GameObject;
+                    var cell = Instantiate(pre);
+                    cell.transform.position = new Vector3(x, 0, y);
                     cell.transform.parent = container.transform;
                 }
 
                 if (tile == Tiles.ClosedDoor_NS)
                 {
-                    var cell = Instantiate(GameObject.Find("Door"));
+                    var pre = Resources.Load("Prefabs/Decoration/Door") as GameObject;
+                    var cell = Instantiate(pre);
                     cell.transform.position = new Vector3(x, 0, y);
                     cell.transform.rotation = Quaternion.AngleAxis(90, Vector3.up);
                     cell.transform.parent = container.transform;
@@ -101,7 +103,8 @@ public class GameManagerScript : MonoBehaviour
 
                 if (tile == Tiles.Pillar)
                 {
-                    var cell = Instantiate(GameObject.Find("crumbled_column_1"));
+                    var pre = Resources.Load("Prefabs/Decoration/Pillar") as GameObject;
+                    var cell = Instantiate(pre);
                     cell.name = "Pillar_" + x + "_" + y;
                     cell.transform.position = new Vector3(x, 0, y);
                     cell.transform.rotation = Quaternion.AngleAxis(45, Vector3.up);
