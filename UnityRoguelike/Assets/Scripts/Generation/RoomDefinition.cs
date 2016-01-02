@@ -35,53 +35,8 @@ namespace UnityRoguelike
 
         public void ReadAll(string file)
         {
-            
             var lines = File.ReadAllLines(file);
-
-            RoomDefinition def=null;
-            bool roomActive = false;
-            int lx=0, ly=0, w=0, h=0;
-            foreach (var line in lines)
-            {
-                if (line.StartsWith("BEGIN"))
-                {
-                    var props = line.Split(' ');
-                    w = Int32.Parse(props[1]);
-                    h = Int32.Parse(props[2]);
-                    int chance = Int32.Parse(props[3]);
-
-                    def = new RoomDefinition(w,h);
-                    def.chance = chance;
-
-                    roomActive = true;
-                    continue;
-                }
-
-                if (line.StartsWith("END"))
-                {
-                    lx = 0;
-                    ly = 0;
-                    roomActive = false;
-                    Definitions.Add(def);
-                    def = null;
-                    continue;
-                }
-
-                if (roomActive)
-                {
-                    lx = 0;
-                    foreach (var c in line.ToCharArray())
-                    {
-                        def.tiles[lx,ly]=(int)c;
-                        lx++;
-                        if (lx==w) 
-                            break;
-                    }
-                    ly++;
-                    continue;
-                }
-            }
-
+            ReadAll(lines);
         }
 
         public void DecorateRoom(object sender, DecorateRoomEventArgs e)
@@ -110,6 +65,53 @@ namespace UnityRoguelike
                 }
             }
 
+        }
+
+        public void ReadAll(string[] lines)
+        {
+            RoomDefinition def = null;
+            bool roomActive = false;
+            int lx = 0, ly = 0, w = 0, h = 0;
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("BEGIN"))
+                {
+                    var props = line.Split(' ');
+                    w = Int32.Parse(props[1]);
+                    h = Int32.Parse(props[2]);
+                    int chance = Int32.Parse(props[3]);
+
+                    def = new RoomDefinition(w, h);
+                    def.chance = chance;
+
+                    roomActive = true;
+                    continue;
+                }
+
+                if (line.StartsWith("END"))
+                {
+                    lx = 0;
+                    ly = 0;
+                    roomActive = false;
+                    Definitions.Add(def);
+                    def = null;
+                    continue;
+                }
+
+                if (roomActive)
+                {
+                    lx = 0;
+                    foreach (var c in line.ToCharArray())
+                    {
+                        def.tiles[lx, ly] = (int)c;
+                        lx++;
+                        if (lx == w)
+                            break;
+                    }
+                    ly++;
+                    continue;
+                }
+            }
         }
     }
 }

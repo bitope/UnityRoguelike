@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityRoguelike;
 using Random = UnityEngine.Random;
@@ -82,6 +83,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 return;
 
             RotateView();
+
             // the jump state needs to read here to make sure it is not missed
             if (!m_Jump)
             {
@@ -101,6 +103,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 m_MoveDir.y = 0f;
                 m_Jumping = false;
             }
+            
             if (!m_CharacterController.isGrounded && !m_Jumping && m_PreviouslyGrounded)
             {
                 m_MoveDir.y = 0f;
@@ -289,7 +292,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void RotateView()
         {
-                m_MouseLook.LookRotation(transform, m_Camera.transform);
+            m_MouseLook.LookRotation(transform, m_Camera.transform);
+
+            var all = Physics.RaycastAll(m_Camera.transform.position, m_Camera.transform.forward, 1.0f);
+
+            var c = GameObject.Find("Canvas");
+            var x = c.GetComponent<ProximityItemManager>();
+            var list = all.Select(i => i.collider.gameObject).ToList();
+            x.UpdatePointerList(list);
         }
 
         private void OnControllerColliderHit(ControllerColliderHit hit)

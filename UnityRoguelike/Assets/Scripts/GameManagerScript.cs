@@ -1,4 +1,5 @@
-﻿using Dungeon;
+﻿using System;
+using Dungeon;
 using UnityEngine;
 using System.Collections;
 using UnityRoguelike;
@@ -22,12 +23,12 @@ public class GameManagerScript : MonoBehaviour
     void Awake()
     {
         Debug.Log("GM Awake called.");
+        inventoryCanvas = GameObject.Find("InventoryCanvas");
     }
 
     void Start()
     {
         Debug.Log("GM Start called.");
-        inventoryCanvas = GameObject.Find("InventoryCanvas");
         ToggleInventory();        
 
         Cursor.lockState = CursorLockMode.Confined;
@@ -38,7 +39,9 @@ public class GameManagerScript : MonoBehaviour
 		stage = new Stage(23, 23);
 
         RoomDecorator rd = new RoomDecorator(stage);
-        rd.ReadAll(Application.dataPath+"\\rooms.txt");
+        var roomLines = Resources.Load("rooms") as TextAsset;
+        rd.ReadAll(roomLines.text.Split('\n'));
+        //rd.ReadAll(Application.dataPath+"\\rooms.txt");
 
         Generator g = new Generator(seed);
         g.DecorateRoom += rd.DecorateRoom;
@@ -107,8 +110,9 @@ public class GameManagerScript : MonoBehaviour
 
                 if (tile == Tiles.Brazier)
                 {
-                    //var cell = CreateLight(x, y);
-                    var cell = Instantiate(GameObject.Find("Brazier"));
+                    var pre = Resources.Load("Prefabs/Decoration/Brazier") as GameObject;
+                    var cell = Instantiate(pre);
+                    //var cell = Instantiate(GameObject.Find("Brazier"));
                     cell.name = "Brazier_" + x + "_" + y;
                     cell.transform.position = new Vector3(x, 0, y);
                     cell.transform.rotation = Quaternion.AngleAxis(45, Vector3.up);
@@ -119,7 +123,9 @@ public class GameManagerScript : MonoBehaviour
                 {
                     if (rng.OneIn(20))
                     {
-                        var cell = Instantiate(GameObject.Find("Item"));
+                        var pre = Resources.Load("Prefabs/Item") as GameObject;
+                        var cell = Instantiate(pre);
+                        //var cell = Instantiate(GameObject.Find("Item"));
                         cell.name = "Item_" + x + "_" + y;
                         cell.transform.position = new Vector3(x, -0.0f, y);
                         //cell.transform.rotation = Quaternion.AngleAxis(45, Vector3.up);
@@ -128,7 +134,9 @@ public class GameManagerScript : MonoBehaviour
 
                     if (rng.OneIn(20))
                     {
-                        var cell = Instantiate(GameObject.Find("EnemySmall"));
+                        var pre = Resources.Load("Prefabs/Decoration/EnemySmall") as GameObject;
+                        var cell = Instantiate(pre);
+                        //var cell = Instantiate(GameObject.Find("EnemySmall"));
                         cell.name = "Rat_" + x + "_" + y;
                         cell.transform.position = new Vector3(x, 0.2f, y);
                         //cell.transform.rotation = Quaternion.AngleAxis(45, Vector3.up);
@@ -173,6 +181,7 @@ public class GameManagerScript : MonoBehaviour
     public GameObject CreateWall(int x, int y, int tileid)
     {
         var c = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        c.layer = 2;
         var tileScript = c.AddComponent<TileScript>();
         var tileMaterial = Instantiate(wallMaterial);
         tileScript.SetMaterial(tileMaterial);
@@ -185,6 +194,7 @@ public class GameManagerScript : MonoBehaviour
     public GameObject CreateFloor(int x, int y, int tileid)
     {
         var c = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        c.layer = 2;
         var tileScript = c.AddComponent<TileScript>();
         var tileMaterial = Instantiate(floorMaterial);
         tileScript.SetMaterial(tileMaterial);
@@ -197,6 +207,7 @@ public class GameManagerScript : MonoBehaviour
     public GameObject CreateCeiling(int x, int y, int tileid)
     {
         var c = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        c.layer = 2;
         var tileScript = c.AddComponent<TileScript>();
         var tileMaterial = Instantiate(floorMaterial);
         tileScript.SetMaterial(tileMaterial);
@@ -209,6 +220,7 @@ public class GameManagerScript : MonoBehaviour
     public GameObject CreateLight(int x, int y)
     {
         var c = new GameObject("Light_"+x+"_"+y);
+        c.layer = 2;
         var lightComp = c.AddComponent<Light>();
         lightComp.color = Color.yellow;
         lightComp.range = 3;
