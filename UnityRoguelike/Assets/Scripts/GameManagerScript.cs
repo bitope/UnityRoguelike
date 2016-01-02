@@ -16,6 +16,9 @@ public class GameManagerScript : MonoBehaviour
 
     public static Stage stage = null;
 
+    public static bool MouseLook;
+    private GameObject inventoryCanvas;
+
     void Awake()
     {
         Debug.Log("GM Awake called.");
@@ -24,6 +27,8 @@ public class GameManagerScript : MonoBehaviour
     void Start()
     {
         Debug.Log("GM Start called.");
+        inventoryCanvas = GameObject.Find("InventoryCanvas");
+        ToggleInventory();        
 
         Cursor.lockState = CursorLockMode.Confined;
 
@@ -137,6 +142,11 @@ public class GameManagerScript : MonoBehaviour
 	
 	// Update is called once per frame
 	void Update () {
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            ToggleInventory();
+        }
+
 	    if (Input.GetKeyDown(KeyCode.F1))
 	    {
 	        seed++;
@@ -147,6 +157,13 @@ public class GameManagerScript : MonoBehaviour
             Start();
 	    }
 	}
+
+    private void ToggleInventory()
+    {
+        inventoryCanvas.SetActive(!inventoryCanvas.activeSelf);
+        GameManagerScript.MouseLook = !inventoryCanvas.activeSelf;
+    }
+
 
     public static void EndTurn(int count = 1)
     {

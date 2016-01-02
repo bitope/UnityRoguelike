@@ -78,6 +78,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
         // Update is called once per frame
         private void Update()
         {
+            if (!GameManagerScript.MouseLook)
+                return;
+
             RotateView();
             // the jump state needs to read here to make sure it is not missed
             if (!m_Jump)
@@ -116,6 +119,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
 
         }
+
 
         private void PlayLandingSound()
         {
@@ -285,7 +289,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void RotateView()
         {
-            m_MouseLook.LookRotation(transform, m_Camera.transform);
+                m_MouseLook.LookRotation(transform, m_Camera.transform);
         }
 
         private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -320,10 +324,25 @@ namespace UnityStandardAssets.Characters.FirstPerson
         void OnTriggerEnter(Collider other)
         {
             Debug.Log("OnTriggerEnter: "+other.name);
+
+            var c = GameObject.Find("Canvas");
+            var x = c.GetComponent<ProximityItemManager>();
+            x.AddItem(other.gameObject);
+
             //if (other.gameObject.CompareTag("Pick Up"))
             //{
             //    other.gameObject.SetActive(false);
             //}
+        }
+
+        void OnTriggerExit(Collider other)
+        {
+            Debug.Log("OnTriggerExit: " + other.name);
+
+            var c = GameObject.Find("Canvas");
+            var x = c.GetComponent<ProximityItemManager>();
+            x.RemoveItem(other.gameObject);
+
         }
 
         void OnGUI()
