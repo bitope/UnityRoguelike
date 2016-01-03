@@ -53,7 +53,7 @@ public class Inventory : MonoBehaviour
         for (int slot = 0; slot < 50; slot++)
         {
             var script = Slots[slot].GetComponentInChildren<SlotScript>();
-            script.Item = GameManagerScript.stage.Player.Inventory[slot];
+            script.Item = GameManagerScript.stage.Player.GetInventory(slot);
             script.SourceSlot = slot;
         }
     }

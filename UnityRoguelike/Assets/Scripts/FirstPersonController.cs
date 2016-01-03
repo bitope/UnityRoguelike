@@ -67,6 +67,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_AudioSource = GetComponent<AudioSource>();
             
 			m_MouseLook.Init(transform , m_Camera.transform);
+
+            EquipWeapon(null);
         }
 
         // Update is called once per frame
@@ -299,6 +301,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
         void Player_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             //Debug.Log(e.PropertyName+" has changed.");
+            if (e.PropertyName == "Inventory")
+            {
+                var weapon = actorRef.GetInventory(EquipmentSlot.RightHand);
+                Debug.Log("Weapon "+weapon);
+
+                //if (weapon!=null)
+                    EquipWeapon(weapon);
+            }
         }
 
         void OnTriggerEnter(Collider other)
@@ -317,6 +327,21 @@ namespace UnityStandardAssets.Characters.FirstPerson
             GUI.Label(new Rect(10, 10, 200, 40), "Positon: "+p);
             GUI.Label(new Rect(10, 20, 200, 40), "Facing: " + new Vec((int)f.x,(int)f.z));
             GUI.Label(new Rect(10, 30, 200, 40), "Current Turn: " + GameManagerScript.turnCount);
+        }
+
+        public void EquipWeapon(Item item)
+        {
+            var gfx = transform.FindChild("WeaponSlot").FindChild("Quad");
+            var ren = gfx.GetComponent<MeshRenderer>();
+
+            if (item == null || item.ItemIcon==null)
+            {
+                ren.enabled = false;
+                return;
+            }
+
+            ren.material.mainTexture = item.ItemIcon.texture;
+            ren.enabled = true;
         }
     }
 }

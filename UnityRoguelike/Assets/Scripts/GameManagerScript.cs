@@ -190,6 +190,9 @@ public class GameManagerScript : MonoBehaviour
     {
         var c = GameObject.CreatePrimitive(PrimitiveType.Cube);
         c.layer = 2;
+        var r = c.GetComponent<MeshRenderer>();
+        r.receiveShadows = true;
+
         var tileScript = c.AddComponent<TileScript>();
         var tileMaterial = Instantiate(wallMaterial);
         tileScript.SetMaterial(tileMaterial);

@@ -76,11 +76,6 @@ namespace UnityRoguelike
 
         public Vec NextPosition { get; set; }
 
-        public Item[] Inventory
-        {
-            get { return inventory; }
-        }
-
         public int FindEmptyInventorySlot()
         {
             for (int i = 0; i < 50; i++)
@@ -103,9 +98,31 @@ namespace UnityRoguelike
             if (slot==-1)
                 return false;
 
-            Inventory[slot] = ic.Item;
+            inventory[slot] = ic.Item;
             OnPropertyChanged("Inventory");
             return true;
         }
+
+        public void SetInventory(int id, Item value)
+        {
+            inventory[id] = value;
+            //OnPropertyChanged("Inventory");
+        }
+
+        public Item GetInventory(int id)
+        {
+            return inventory[id];
+        }
+
+        public Item GetInventory(EquipmentSlot id)
+        {
+            return inventory[(int)id];
+        }
+
+        public void SignalInventory()
+        {
+            OnPropertyChanged("Inventory");
+        }
+
     }
 }

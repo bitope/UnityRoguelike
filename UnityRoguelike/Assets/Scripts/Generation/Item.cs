@@ -9,9 +9,9 @@ namespace UnityRoguelike
 {
     public enum EquipmentSlot
     {
-        None,
+        None = 0,
 
-        Head,
+        Head = 50,
         Neck,
         Chest,
         RightHand,
@@ -32,7 +32,6 @@ namespace UnityRoguelike
 
         public Item()
         {
-            
         }
 
         public string Icon

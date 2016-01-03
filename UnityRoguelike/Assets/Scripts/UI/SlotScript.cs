@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -44,7 +45,7 @@ public class SlotScript : MonoBehaviour, IPointerDownHandler, IPointerEnterHandl
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Debug.Log("Tooltip: " + name);
+        //Debug.Log("Tooltip: " + name);
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -60,7 +61,7 @@ public class SlotScript : MonoBehaviour, IPointerDownHandler, IPointerEnterHandl
             targets += ", " + o.name;
         }
         
-        Debug.Log("Drag: " + name+": "+targets);
+        //Debug.Log("Drag: " + name+": "+targets);
         transform.position = Input.mousePosition;
     }
 
@@ -70,9 +71,21 @@ public class SlotScript : MonoBehaviour, IPointerDownHandler, IPointerEnterHandl
         var source = eventData.pointerDrag.GetComponent<SlotScript>();
         var dest = transform.GetComponent<SlotScript>();
 
+        if (dest.Item!=null && String.IsNullOrEmpty(dest.Item.Icon))
+        {
+            Debug.LogWarning("Destination ITEM destroyed! Did not have icon.");
+            dest.Item = null;
+        }
+
         if (!IsValidDrop(source.Item, name))
         {
-            Debug.Log("Not valid drop: ");
+            Debug.Log("Not valid drop: Source");
+            return;
+        }
+
+        if (!IsValidDrop(dest.Item, eventData.pointerDrag.name))
+        {
+            Debug.Log("Not valid drop: Dest");
             return;
         }
 
@@ -80,8 +93,10 @@ public class SlotScript : MonoBehaviour, IPointerDownHandler, IPointerEnterHandl
         dest.Item = source.Item;
         source.Item = tmp;
 
-        GameManagerScript.stage.Player.Inventory[source.SourceSlot] = source.Item;
-        GameManagerScript.stage.Player.Inventory[dest.SourceSlot] = dest.Item;
+        //GameManagerScript.stage.Player.Inventory[source.SourceSlot] = source.Item;
+        //GameManagerScript.stage.Player.Inventory[dest.SourceSlot] = dest.Item;
+        GameManagerScript.stage.Player.SetInventory(source.SourceSlot, source.Item);
+        GameManagerScript.stage.Player.SetInventory(dest.SourceSlot, dest.Item);
     }
 
     private bool IsValidDrop(UnityRoguelike.Item item, string name)
@@ -89,7 +104,10 @@ public class SlotScript : MonoBehaviour, IPointerDownHandler, IPointerEnterHandl
         if (name.StartsWith("Slot"))
             return true;
 
-        if (name==item.Equipmentslot.ToString())
+        if (item == null)
+            return true;
+
+        if (item!=null && name==item.Equipmentslot.ToString())
             return true;
 
         return false;
@@ -113,6 +131,9 @@ public class SlotScript : MonoBehaviour, IPointerDownHandler, IPointerEnterHandl
         //GetComponent<LayoutElement>().ignoreLayout = false;
         GetComponent<CanvasGroup>().blocksRaycasts = true;
         transform.position = dragStartPos;
+
+        GameManagerScript.stage.Player.SignalInventory();
+
     }
 
 }
