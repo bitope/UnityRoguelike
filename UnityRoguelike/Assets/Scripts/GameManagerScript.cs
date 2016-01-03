@@ -192,6 +192,7 @@ public class GameManagerScript : MonoBehaviour
         c.layer = 2;
         var r = c.GetComponent<MeshRenderer>();
         r.receiveShadows = true;
+        //c.GetComponent<Mesh>().RecalculateNormals();
 
         var tileScript = c.AddComponent<TileScript>();
         var tileMaterial = Instantiate(wallMaterial);

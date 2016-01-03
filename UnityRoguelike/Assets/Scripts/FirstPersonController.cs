@@ -93,6 +93,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                         {
                             Debug.Log("Got item "+o.name);
                             ignoreList.Add(o.GetInstanceID());
+                            o.SetActive(false);
                             Destroy(o);
                         }
                     }
@@ -269,7 +270,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             var c = GameObject.Find("Canvas");
             var x = c.GetComponent<ProximityItemManager>();
-            var list = all.Select(i => i.collider.gameObject).ToList();
+            var list = all.Select(i => i.collider.gameObject).Distinct().ToList();
             x.UpdatePointerList(list);
             pointerList = list;
         }
