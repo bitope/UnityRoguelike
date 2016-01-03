@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 
 namespace UnityRoguelike
 {
@@ -10,7 +12,14 @@ namespace UnityRoguelike
         private int _maxHp;
         private Vec _position;
 
+        private Item[] inventory;
+
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public Actor()
+        {
+            inventory = new Item[50];
+        }
 
         protected void OnPropertyChanged(PropertyChangedEventArgs e)
         {
@@ -63,8 +72,38 @@ namespace UnityRoguelike
             }
         }
 
-
-
         public Vec NextPosition { get; set; }
+
+        public Item[] Inventory
+        {
+            get { return inventory; }
+        }
+
+        public int FindEmptyInventorySlot()
+        {
+            for (int i = 0; i < inventory.Length; i++)
+            {
+                if (inventory[i]!=null)
+                    continue;
+                return i;
+            }
+
+            return -1;
+        }
+
+        public bool PickupItem(UnityEngine.GameObject o)
+        {
+            var ic = o.GetComponent<ItemController>();
+            if (ic == null)
+                return false;
+
+            var slot = FindEmptyInventorySlot();
+            if (slot==-1)
+                return false;
+
+            Inventory[slot] = ic.Item;
+            OnPropertyChanged("Inventory");
+            return true;
+        }
     }
 }

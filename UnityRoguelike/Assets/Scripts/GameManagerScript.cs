@@ -23,13 +23,14 @@ public class GameManagerScript : MonoBehaviour
     void Awake()
     {
         Debug.Log("GM Awake called.");
+        SpriteResourceManager.Initialize();
         inventoryCanvas = GameObject.Find("InventoryCanvas");
+        ToggleInventory();
     }
 
     void Start()
     {
         Debug.Log("GM Start called.");
-        ToggleInventory();        
 
         Cursor.lockState = CursorLockMode.Confined;
 
@@ -48,7 +49,6 @@ public class GameManagerScript : MonoBehaviour
 
         g.numRoomTries = 500;
         g.generate(stage);
-
 
         rng = new MersenneTwister((uint)seed);
 
@@ -74,6 +74,7 @@ public class GameManagerScript : MonoBehaviour
                         var vv = cell.transform.position;
                         GameObject.Find("Player").transform.position = new Vector3(vv.x, 0.15f, vv.z);
                         GameObject.Find("Player").SendMessage("RegisterWithStage", SendMessageOptions.DontRequireReceiver);
+                        GameObject.Find("Inventory").SendMessage("RegisterWithStage", SendMessageOptions.RequireReceiver);
                     }
                 }
 
@@ -171,8 +172,12 @@ public class GameManagerScript : MonoBehaviour
 
     private void ToggleInventory()
     {
-        inventoryCanvas.SetActive(!inventoryCanvas.activeSelf);
-        GameManagerScript.MouseLook = !inventoryCanvas.activeSelf;
+        var canvas = inventoryCanvas.GetComponent<Canvas>();
+        //inventoryCanvas.SetActive(!inventoryCanvas.activeSelf);
+        canvas.enabled = !canvas.enabled;
+
+        //GameManagerScript.MouseLook = !inventoryCanvas.activeSelf;
+        GameManagerScript.MouseLook = !canvas.enabled;
     }
 
 

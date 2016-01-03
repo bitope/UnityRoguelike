@@ -55,7 +55,9 @@ namespace UnityRoguelike
             bool isFloor = tiles[p.x, p.y] != (int) Tiles.Wall;
             bool isOccupied = Creatures.Any(c => c.Position == p);
             bool isReserved = Creatures.Any(c => c.NextPosition == p);
-            return (isFloor && !isOccupied && !isReserved);
+            bool isPlayer = Player!=null && Player.Position == p;
+
+            return (isFloor && !isOccupied && !isReserved && !isPlayer);
         }
     }
 }

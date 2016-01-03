@@ -85,10 +85,21 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             if (Input.GetKeyDown(KeyCode.E))
             {
+                List<int> ignoreList = new List<int>();
                 foreach (var o in pointerList)
                 {
                     Debug.Log("Activate: "+o.name);
                     o.transform.SendMessageUpwards("Activate", SendMessageOptions.DontRequireReceiver);
+
+                    if (o.tag == "Item" && !ignoreList.Contains(o.GetInstanceID()))
+                    {
+                        if (GameManagerScript.stage.Player.PickupItem(o))
+                        {
+                            Debug.Log("Got item "+o.name);
+                            ignoreList.Add(o.GetInstanceID());
+                            Destroy(o);
+                        }
+                    }
                 }
             }
 

@@ -216,7 +216,7 @@ namespace UnityRoguelike
                     {
                         int dt = distances[nodes[index]];
                         int newNode;
-                        float userDist = 0.0f;
+                        //float userDist = 0.0f;
 
                         if (dt == Int32.MaxValue) // Fix for MAXINTEGER +1 is large negative.
                             dt = 0;
@@ -299,7 +299,7 @@ namespace UnityRoguelike
                     {
                         int dt = distances[nodes[index]];
                         int newNode;
-                        float userDist = 0.0f;
+                        //float userDist = 0.0f;
 
                         if (dt == Int32.MaxValue)
                             dt = 0;
