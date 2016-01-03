@@ -10,7 +10,6 @@ using Rect = UnityEngine.Rect;
 namespace UnityStandardAssets.Characters.FirstPerson
 {
     [RequireComponent(typeof (CharacterController))]
-    //[RequireComponent(typeof (AudioSource))]
     public class FirstPersonController : MonoBehaviour
     {
         [SerializeField] private bool m_IsWalking = true;
@@ -22,9 +21,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private float m_GravityMultiplier=0;
         [SerializeField] private MouseLook m_MouseLook =new MouseLook();
         [SerializeField] private float m_StepInterval =0;
-        //[SerializeField] private AudioClip[] m_FootstepSounds;    // an array of footstep sounds that will be randomly selected from.
-        //[SerializeField] private AudioClip m_JumpSound;           // the sound played when character leaves the ground.
-        //[SerializeField] private AudioClip m_LandSound;           // the sound played when character touches back on ground.
 
         private Camera m_Camera;
         private bool m_Jump;
@@ -70,10 +66,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_Jumping = false;
             m_AudioSource = GetComponent<AudioSource>();
             
-            //m_MouseLook = new MouseLook();
 			m_MouseLook.Init(transform , m_Camera.transform);
         }
-
 
         // Update is called once per frame
         private void Update()
@@ -145,9 +139,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void PlayLandingSound()
         {
-            //m_AudioSource.clip = m_LandSound;
-            //m_AudioSource.Play();
-            //m_NextStep = m_StepCycle + .5f;
         }
 
         private void FixedUpdate()
@@ -209,13 +200,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_Attacking = false;
         }
 
-
         private void PlayJumpSound()
         {
-            //m_AudioSource.clip = m_JumpSound;
-            //m_AudioSource.Play();
         }
-
 
         private void ProgressStepCycle(float speed)
         {
@@ -241,38 +228,13 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 return;
             }
-            // pick & play a random footstep sound from the array,
-            // excluding sound at index 0
-            //int n = Random.Range(1, m_FootstepSounds.Length);
-            //m_AudioSource.clip = m_FootstepSounds[n];
-            //m_AudioSource.PlayOneShot(m_AudioSource.clip);
-            //// move picked sound to index 0 so it's not picked next time
-            //m_FootstepSounds[n] = m_FootstepSounds[0];
-            //m_FootstepSounds[0] = m_AudioSource.clip;
         }
 
 
         private void UpdateCameraPosition(float speed)
         {
             Vector3 newCameraPosition;
-
-            //if (!m_UseHeadBob)
-            //{
-            //    return;
-            //}
-
-            //if (m_CharacterController.velocity.magnitude > 0 && m_CharacterController.isGrounded)
-            //{
-            //    m_Camera.transform.localPosition = m_HeadBob.DoHeadBob(m_CharacterController.velocity.magnitude + (speed*(m_IsWalking ? 1f : m_RunstepLenghten)));
-            //    newCameraPosition = m_Camera.transform.localPosition;
-            //    newCameraPosition.y = m_Camera.transform.localPosition.y - m_JumpBob.Offset();
-            //}
-            //else
-            //{
             newCameraPosition = m_Camera.transform.localPosition;
-            //    newCameraPosition.y = m_OriginalCameraPosition.y - m_JumpBob.Offset();
-            //}
-
             m_Camera.transform.localPosition = newCameraPosition;
         }
 
@@ -284,12 +246,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
             float vertical = Input.GetAxisRaw("Vertical");
 
             bool waswalking = m_IsWalking;
-
-#if !MOBILE_INPUT
-            // On standalone builds, walk/run speed is modified by a key press.
-            // keep track of whether or not the character is walking or running
             m_IsWalking = !Input.GetKey(KeyCode.LeftShift);
-#endif
+
             // set the desired speed to be walking or running
             speed = m_IsWalking ? m_WalkSpeed : m_RunSpeed;
             m_Input = new Vector2(horizontal, vertical);
@@ -299,14 +257,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 m_Input.Normalize();
             }
-
-            // handle speed change to give an fov kick
-            // only if the player is going to a run, is running and the fovkick is to be used
-            //if (m_IsWalking != waswalking && m_UseFovKick && m_CharacterController.velocity.sqrMagnitude > 0)
-            //{
-            //    StopAllCoroutines();
-            //    StartCoroutine(!m_IsWalking ? m_FovKick.FOVKickUp() : m_FovKick.FOVKickDown());
-            //}
         }
 
         private void RotateView()
@@ -353,38 +303,20 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         void OnTriggerEnter(Collider other)
         {
-            Debug.Log("OnTriggerEnter: "+other.name);
 
-            var c = GameObject.Find("Canvas");
-            var x = c.GetComponent<ProximityItemManager>();
-            x.AddItem(other.gameObject);
-
-            //if (other.gameObject.CompareTag("Pick Up"))
-            //{
-            //    other.gameObject.SetActive(false);
-            //}
         }
 
         void OnTriggerExit(Collider other)
         {
-            Debug.Log("OnTriggerExit: " + other.name);
-
-            var c = GameObject.Find("Canvas");
-            var x = c.GetComponent<ProximityItemManager>();
-            x.RemoveItem(other.gameObject);
-
         }
 
         void OnGUI()
         {
             var p = new Vec((int) (transform.position.x+0.5f), (int) (transform.position.z+0.5f));
-            //Physics.Raycast(new Vector3(p.x,0,p.y),transform.forward,1.0f)
             var f = new Vector3(p.x+0.5f, 0, p.y+0.5f) + transform.forward;
             GUI.Label(new Rect(10, 10, 200, 40), "Positon: "+p);
             GUI.Label(new Rect(10, 20, 200, 40), "Facing: " + new Vec((int)f.x,(int)f.z));
-
             GUI.Label(new Rect(10, 30, 200, 40), "Current Turn: " + GameManagerScript.turnCount);
-
         }
     }
 }
