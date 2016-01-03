@@ -7,6 +7,20 @@ using UnityEngine;
 
 namespace UnityRoguelike
 {
+    public enum EquipmentSlot
+    {
+        None,
+
+        Head,
+        Neck,
+        Chest,
+        RightHand,
+        LeftHand,
+        Waist,
+        Legs,
+        Feet
+    }
+
     [Serializable]
     public class Item
     {
@@ -14,8 +28,7 @@ namespace UnityRoguelike
 
         [SerializeField]
         private string icon;
-
-        //public static UnityEngine.Sprite ItemIcon;
+        public EquipmentSlot Equipmentslot;
 
         public Item()
         {

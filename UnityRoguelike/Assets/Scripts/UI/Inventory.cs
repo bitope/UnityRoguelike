@@ -50,9 +50,9 @@ public class Inventory : MonoBehaviour
 
     private void UpdateInventory()
     {
-        for (int slot = 0; slot < GameManagerScript.stage.Player.Inventory.Length; slot++)
+        for (int slot = 0; slot < 50; slot++)
         {
-            var script = Slots[slot].GetComponent<SlotScript>();
+            var script = Slots[slot].GetComponentInChildren<SlotScript>();
             script.Item = GameManagerScript.stage.Player.Inventory[slot];
             script.SourceSlot = slot;
         }

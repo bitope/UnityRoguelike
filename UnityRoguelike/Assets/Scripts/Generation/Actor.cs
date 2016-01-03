@@ -18,7 +18,9 @@ namespace UnityRoguelike
 
         public Actor()
         {
-            inventory = new Item[50];
+            inventory = new Item[58];
+            // 0-49 är inventory.
+            // 50-57 är equipped.
         }
 
         protected void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -81,7 +83,7 @@ namespace UnityRoguelike
 
         public int FindEmptyInventorySlot()
         {
-            for (int i = 0; i < inventory.Length; i++)
+            for (int i = 0; i < 50; i++)
             {
                 if (inventory[i]!=null)
                     continue;
