@@ -1,39 +1,12 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityRoguelike;
 
 namespace Dungeon
 {
-    public static class SpriteResourceManager
-    {
-        public static Dictionary<string, Sprite> _sprites;
-
-        public static void Initialize()
-        {
-            _sprites = new Dictionary<string, Sprite>();
-            
-            //BUG: Unity randomly refuses to find all sprites if not force-loaded.
-            Resources.LoadAll("", typeof(Sprite));
-
-            var allSprites = Resources.FindObjectsOfTypeAll<Sprite>();
-            foreach (var sprite in allSprites)
-            {
-                Debug.Log(sprite.name);
-                _sprites.Add(sprite.name, sprite);
-            }
-        }
-
-        public static Sprite Get(string sprite)
-        {
-            if (_sprites.ContainsKey(sprite))
-                return _sprites[sprite];
-
-            return _sprites["unknown"];
-        }
-    }
-
     public static class Util
     {
+        public static Random rng = new Random();
+
         public static Vector2 GetTileUvOffset(int tileId)
         {
             int x = tileId%32;
@@ -109,12 +82,17 @@ namespace Dungeon
             if (x >= y)
                 return true;
 
-            return UnityEngine.Random.Range(0, y) < x;
+            return Random.Range(0, y) < x;
         }
 
         public static Vec GetVecPosition(Vector3 v)
         {
             return new Vec((int)(v.x + 0.5f), (int)(v.z + 0.5f));
+        }
+
+        public static Vector3 Nudge(this Vector3 v, float maxOffset)
+        {
+            return v+Random.insideUnitSphere*maxOffset;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 
 namespace UnityRoguelike
@@ -13,12 +14,15 @@ namespace UnityRoguelike
         private Vec _position;
 
         private Item[] inventory;
+        private Item[] equippedItems;
 
         public event PropertyChangedEventHandler PropertyChanged;
+        public string Name;
 
         public Actor()
         {
-            inventory = new Item[58];
+            inventory = new Item[50];
+            equippedItems = new Item[8];
             // 0-49 är inventory.
             // 50-57 är equipped.
         }
@@ -105,18 +109,41 @@ namespace UnityRoguelike
 
         public void SetInventory(int id, Item value)
         {
-            inventory[id] = value;
+            if (id<50)
+                inventory[id] = value;
+            else
+            {
+                equippedItems[id - 50] = value;
+            }
+            
             //OnPropertyChanged("Inventory");
         }
 
         public Item GetInventory(int id)
         {
-            return inventory[id];
+            if (id < 50)
+                return inventory[id];
+            else
+            {
+                return equippedItems[id - 50];
+            }
         }
 
         public Item GetInventory(EquipmentSlot id)
         {
-            return inventory[(int)id];
+            return GetInventory((int)id);
+        }
+
+        public void SortInventory()
+        {
+            Array.Sort(inventory, delegate(Item a, Item b)
+            {
+                if (a != null)
+                    return a.CompareTo(b);
+                return 1;
+            });
+
+            SignalInventory();
         }
 
         public void SignalInventory()

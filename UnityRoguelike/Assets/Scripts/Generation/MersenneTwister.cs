@@ -85,10 +85,10 @@ namespace UnityRoguelike
 
         #region "Constructor"
 
-        public MersenneTwister(UInt32 s)
+        public MersenneTwister(int s)
         {
             MT();
-            init_genrand(s);
+            init_genrand((UInt32)s);
         }
 
         // coded by Mitil. 2006/01/04

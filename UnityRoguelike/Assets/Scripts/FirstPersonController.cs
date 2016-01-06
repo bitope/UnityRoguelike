@@ -298,6 +298,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             Debug.Log(name + " has registered.");
             actorRef = new Actor();
+            actorRef.Name = "Player";
             GameManagerScript.stage.Player = actorRef;
             GameManagerScript.stage.Player.PropertyChanged += Player_PropertyChanged;
         }

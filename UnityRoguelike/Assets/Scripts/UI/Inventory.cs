@@ -58,6 +58,11 @@ public class Inventory : MonoBehaviour
         }
     }
 
+    public void SortInventory()
+    {
+        GameManagerScript.stage.Player.SortInventory();
+    }
+
     // Update is called once per frame
 	void Update ()
 	{

@@ -15,7 +15,7 @@ public class GameManagerScript : MonoBehaviour
 
     public static int seed = 20;
     public static int turnCount = 0;
-    public static MersenneTwister rng = new MersenneTwister((uint)seed);
+    public static MersenneTwister rng = new MersenneTwister(seed);
 
     public static Stage stage = null;
 
@@ -27,12 +27,17 @@ public class GameManagerScript : MonoBehaviour
     [HideInInspector]
     public GameObject container;
 
+    [HideInInspector] 
+    public GameObject player;
+
     void Awake()
     {
         Debug.Log("GM Awake called.");
         instance = this;
 
         SpriteResourceManager.Initialize();
+        ItemFactory.Initialize();
+
         inventoryCanvas = GameObject.Find("InventoryCanvas");
         ToggleInventory();
     }
@@ -45,6 +50,7 @@ public class GameManagerScript : MonoBehaviour
 
         bool setPlayer = true;
         container = new GameObject("level");
+        player = GameObject.Find("Player");
 
 		stage = new Stage(23, 23);
 
@@ -59,7 +65,7 @@ public class GameManagerScript : MonoBehaviour
         g.numRoomTries = 500;
         g.generate(stage);
 
-        rng = new MersenneTwister((uint)seed);
+        rng = new MersenneTwister(seed);
 
         var wallset = Tileset.GetRandomSet(Tileset.ws_everything);
         var floorset = Tileset.GetRandomSet(Tileset.fs_everything);
@@ -136,13 +142,15 @@ public class GameManagerScript : MonoBehaviour
                 {
                     if (rng.OneIn(20))
                     {
-                        var pre = Resources.Load("Prefabs/Item") as GameObject;
-                        var cell = Instantiate(pre);
-                        //var cell = Instantiate(GameObject.Find("Item"));
-                        cell.name = "Item_" + x + "_" + y;
-                        cell.transform.position = new Vector3(x, -0.0f, y);
-                        //cell.transform.rotation = Quaternion.AngleAxis(45, Vector3.up);
-                        cell.transform.parent = container.transform;
+                        var item = ItemFactory.GetRandom();
+                        CreateItem(x, y, item);
+                        //var pre = Resources.Load("Prefabs/Item") as GameObject;
+                        //var cell = Instantiate(pre);
+                        ////var cell = Instantiate(GameObject.Find("Item"));
+                        //cell.name = "Item_" + x + "_" + y;
+                        //cell.transform.position = new Vector3(x, -0.0f, y);
+                        ////cell.transform.rotation = Quaternion.AngleAxis(45, Vector3.up);
+                        //cell.transform.parent = container.transform;
                     }
 
                     if (rng.OneIn(20))
@@ -254,13 +262,14 @@ public class GameManagerScript : MonoBehaviour
 
     public static GameObject CreateItem(int x, int y, Item item)
     {
+        
         var pre = Resources.Load("Prefabs/Item") as GameObject;
         var cell = Instantiate(pre);
         var ic = cell.GetComponent<ItemController>();
         ic.Item = item;
-        ic.UpdateGraphics();
         cell.name = "Item_" + x + "_" + y;
-        cell.transform.position = new Vector3(x, 0.35f, y);
+        cell.transform.position = new Vector3(x, 0.35f, y).Nudge(0.2f);
+
         cell.transform.parent = instance.container.transform;
         return cell;
     }
@@ -268,6 +277,12 @@ public class GameManagerScript : MonoBehaviour
     public static void ItemDroppedBy(Item item, Actor actor)
     {
         var itemGo = CreateItem(actor.Position.x, actor.Position.y, item);
+        if (actor.Name == "Player")
+        {
+            var rb = itemGo.GetComponent<Rigidbody>();
+            rb.AddForceAtPosition(instance.player.transform.forward,instance.player.transform.position,ForceMode.Impulse);
+        }
         
+
     }
 }

@@ -45,7 +45,7 @@ namespace UnityRoguelike
 
         public Generator(int seed = 0)
         {
-            rng = new MersenneTwister((uint)seed);
+            rng = new MersenneTwister(seed);
 
             _rooms = new List<Rect>();
         }
