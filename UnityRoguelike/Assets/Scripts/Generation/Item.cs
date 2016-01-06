@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Dungeon;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace UnityRoguelike
 {
@@ -24,7 +25,7 @@ namespace UnityRoguelike
     [Serializable]
     public class Item
     {
-        [NonSerialized] public UnityEngine.Sprite ItemIcon;
+        //[NonSerialized] public UnityEngine.Sprite ItemIcon;
 
         [SerializeField]
         private string icon;
@@ -42,14 +43,14 @@ namespace UnityRoguelike
                 if (icon != value)
                 {
                     icon = value;
-                    SetItemIcon();
+                    Assert.IsNotNull(SpriteResourceManager.Get(icon));
                 }
             }
         }
 
-        public void SetItemIcon()
+        public bool isCursed()
         {
-            ItemIcon = SpriteResourceManager.Get(icon);
+            return false;
         }
     }
 }

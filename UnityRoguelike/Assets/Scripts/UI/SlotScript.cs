@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
+using Dungeon;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -34,7 +35,8 @@ public class SlotScript : MonoBehaviour, IPointerDownHandler, IPointerEnterHandl
         {
             //itemImage.enabled = true;
             itemImage.color = new Color(1f, 1f, 1f, 1f);
-            itemImage.sprite = Item.ItemIcon;
+            //itemImage.sprite = Item.ItemIcon;
+            itemImage.sprite = SpriteResourceManager.Get(Item.Icon);
         }
         else
         {

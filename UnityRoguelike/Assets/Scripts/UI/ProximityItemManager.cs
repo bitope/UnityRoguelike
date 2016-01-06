@@ -51,6 +51,9 @@ public class ProximityItemManager : MonoBehaviour
 
     public void AddItem(GameObject o)
     {
+        if (o == null)
+            return;
+
         var x = Instantiate(proximityItemPrototype);
         x.name = "id." + o.GetInstanceID();
         var g = transform.GetChild(0).GetChild(0);

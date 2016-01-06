@@ -6,6 +6,8 @@ using UnityRoguelike;
 
 public class GameManagerScript : MonoBehaviour
 {
+    public static GameManagerScript instance;
+
     public Color AmbientColor;
 
     public Material wallMaterial;
@@ -18,11 +20,14 @@ public class GameManagerScript : MonoBehaviour
     public static Stage stage = null;
 
     public static bool MouseLook;
-    private GameObject inventoryCanvas;
+    public GameObject inventoryCanvas;
+    public GameObject container;
 
     void Awake()
     {
         Debug.Log("GM Awake called.");
+        instance = this;
+
         SpriteResourceManager.Initialize();
         inventoryCanvas = GameObject.Find("InventoryCanvas");
         ToggleInventory();
@@ -35,7 +40,7 @@ public class GameManagerScript : MonoBehaviour
         Cursor.lockState = CursorLockMode.Confined;
 
         bool setPlayer = true;
-        var container = new GameObject("level");
+        container = new GameObject("level");
 
 		stage = new Stage(23, 23);
 
@@ -243,6 +248,22 @@ public class GameManagerScript : MonoBehaviour
         return c;
     }
 
+    public static GameObject CreateItem(int x, int y, Item item)
+    {
+        var pre = Resources.Load("Prefabs/Item") as GameObject;
+        var cell = Instantiate(pre);
+        var ic = cell.GetComponent<ItemController>();
+        ic.Item = item;
+        ic.UpdateGraphics();
+        cell.name = "Item_" + x + "_" + y;
+        cell.transform.position = new Vector3(x, 0.35f, y);
+        cell.transform.parent = instance.container.transform;
+        return cell;
+    }
 
-
+    public static void ItemDroppedBy(Item item, Actor actor)
+    {
+        var itemGo = CreateItem(actor.Position.x, actor.Position.y, item);
+        
+    }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Dungeon;
 using UnityEngine;
 using UnityRoguelike;
 using Random = UnityEngine.Random;
@@ -335,13 +336,15 @@ namespace UnityStandardAssets.Characters.FirstPerson
             var gfx = transform.FindChild("WeaponSlot").FindChild("Quad");
             var ren = gfx.GetComponent<MeshRenderer>();
 
-            if (item == null || item.ItemIcon==null)
+            //if (item == null || item.ItemIcon==null)
+            if (item == null || String.IsNullOrEmpty(item.Icon))
             {
                 ren.enabled = false;
                 return;
             }
 
-            ren.material.mainTexture = item.ItemIcon.texture;
+            //ren.material.mainTexture = item.ItemIcon.texture;
+            ren.material.mainTexture = SpriteResourceManager.Get(item.Icon).texture;
             ren.enabled = true;
         }
     }
