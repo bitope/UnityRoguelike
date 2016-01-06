@@ -7,7 +7,7 @@ public class InventoryDropArea : MonoBehaviour, IDropHandler
 {
     public void OnDrop(PointerEventData eventData)
     {
-        Debug.Log("Drop: " + name + ": " + eventData.pointerDrag.name);
+        //Debug.Log("Drop: " + name + ": " + eventData.pointerDrag.name);
         var source = eventData.pointerDrag.GetComponent<SlotScript>();
 
         if (!IsValidDrop(source.Item, name))

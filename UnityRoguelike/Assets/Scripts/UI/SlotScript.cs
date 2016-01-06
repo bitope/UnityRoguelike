@@ -52,7 +52,7 @@ public class SlotScript : MonoBehaviour, IPointerDownHandler, IPointerEnterHandl
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        Debug.Log("Click: " + name);
+        //Debug.Log("Click: " + name);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -69,7 +69,7 @@ public class SlotScript : MonoBehaviour, IPointerDownHandler, IPointerEnterHandl
 
     public void OnDrop(PointerEventData eventData)
     {
-        Debug.Log("Drop: " + name + ": "+ eventData.pointerDrag.name);
+        //Debug.Log("Drop: " + name + ": "+ eventData.pointerDrag.name);
         var source = eventData.pointerDrag.GetComponent<SlotScript>();
         var dest = transform.GetComponent<SlotScript>();
 
@@ -117,7 +117,7 @@ public class SlotScript : MonoBehaviour, IPointerDownHandler, IPointerEnterHandl
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        Debug.Log("BeginDrag: " + name);
+        //Debug.Log("BeginDrag: " + name);
         startParent = transform.parent;
         transform.SetParent(transform.parent.parent);
         //transform.SetAsFirstSibling();
@@ -128,7 +128,7 @@ public class SlotScript : MonoBehaviour, IPointerDownHandler, IPointerEnterHandl
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        Debug.Log("EndDrag: " + name);
+        //Debug.Log("EndDrag: " + name);
         transform.SetParent(startParent);
         //GetComponent<LayoutElement>().ignoreLayout = false;
         GetComponent<CanvasGroup>().blocksRaycasts = true;

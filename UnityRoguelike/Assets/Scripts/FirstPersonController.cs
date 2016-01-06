@@ -40,6 +40,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private bool m_Attacking;
         private AudioSource m_AudioSource;
 
+        [HideInInspector]
         public List<GameObject> pointerList;
 
         private float curSpeed=0f;
@@ -85,17 +86,18 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 List<int> ignoreList = new List<int>();
                 foreach (var o in pointerList)
                 {
-                    Debug.Log("Activate: "+o.name);
+                    //Debug.Log("Activate: "+o.name);
                     o.transform.SendMessageUpwards("Activate", SendMessageOptions.DontRequireReceiver);
 
                     if (o.tag == "Item" && !ignoreList.Contains(o.GetInstanceID()))
                     {
                         if (GameManagerScript.stage.Player.PickupItem(o))
                         {
-                            Debug.Log("Got item "+o.name);
+                            //Debug.Log("Got item "+o.name);
                             ignoreList.Add(o.GetInstanceID());
                             o.SetActive(false);
                             Destroy(o);
+                            break; // Exit foreach .. Only pick up one item per press.
                         }
                     }
                 }
@@ -306,7 +308,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             if (e.PropertyName == "Inventory")
             {
                 var weapon = actorRef.GetInventory(EquipmentSlot.RightHand);
-                Debug.Log("Weapon "+weapon);
+                //Debug.Log("Weapon "+weapon);
 
                 //if (weapon!=null)
                     EquipWeapon(weapon);

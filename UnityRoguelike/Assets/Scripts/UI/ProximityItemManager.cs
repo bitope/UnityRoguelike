@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using System.Collections;
+using UnityRoguelike;
 
 public class ProximityItemManager : MonoBehaviour
 {
@@ -60,8 +61,15 @@ public class ProximityItemManager : MonoBehaviour
         x.transform.SetParent(g);
 
         var controller = x.GetComponent<ProximityItemController>();
-        
-        controller.SetInfo(o.name);
+
+        if (o.tag == "Item")
+        {
+            var ic = o.GetComponent<ItemController>();
+            controller.SetInfo(ic.Item.Name, ic.Item.Icon);
+            return;
+        }
+
+        controller.SetInfo(o.name, "unknown");
     }
 
     public void RemoveItem(GameObject o)

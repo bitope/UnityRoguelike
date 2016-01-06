@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Dungeon;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 
@@ -18,12 +19,14 @@ public class ProximityItemController : MonoBehaviour
 	
 	}
     
-    public void SetInfo(string t)
+    public void SetInfo(string t, string icon)
     {
         textbox = transform.FindChild("foo").GetComponent<Text>();
         image = transform.FindChild("Image").GetComponent<Image>();
 
         var tt = textbox.GetComponent<Text>();
         tt.text = t;
+
+        image.sprite = SpriteResourceManager.Get(icon);
     }
 }

@@ -20,7 +20,11 @@ public class GameManagerScript : MonoBehaviour
     public static Stage stage = null;
 
     public static bool MouseLook;
+
+    [HideInInspector]
     public GameObject inventoryCanvas;
+    
+    [HideInInspector]
     public GameObject container;
 
     void Awake()

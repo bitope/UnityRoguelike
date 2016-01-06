@@ -25,14 +25,15 @@ namespace UnityRoguelike
     [Serializable]
     public class Item
     {
-        //[NonSerialized] public UnityEngine.Sprite ItemIcon;
-
         [SerializeField]
         private string icon;
+
+        public string Name;
         public EquipmentSlot Equipmentslot;
 
         public Item()
         {
+            Name = "Not set.";
         }
 
         public string Icon
