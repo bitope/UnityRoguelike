@@ -12,7 +12,9 @@ public class TestMonsterAI : MonoBehaviour
     private int lastTurn;
     private bool performingTurn = false;
     private Vec currentPosition;
-
+    
+    private List<Vec> currentPath;
+    
     private TextMesh label;
     
     private Actor actorRef;
@@ -22,6 +24,7 @@ public class TestMonsterAI : MonoBehaviour
 	    label = transform.FindChild("Label").GetComponent<TextMesh>();
 	    cc = GetComponent<CharacterController>();
 	    currentPosition = Util.GetVecPosition(transform.position);
+        currentPath = new List<Vec>();
 
         actorRef = new Actor();
 	    actorRef.Name = "TestMonsterAI";
@@ -45,7 +48,22 @@ public class TestMonsterAI : MonoBehaviour
         lastTurn++;
 
         Vec gotoPos;
-        gotoPos = CanSeePlayer() ? GoToPlayer() : GetOpenSpace();
+        if (CanSeePlayer())
+            gotoPos = GoToPlayer();
+        else
+        {
+            if (currentPath.Any())
+            {
+                var first = currentPath.First();
+                currentPath.RemoveAt(0);
+                gotoPos = first;
+
+                if (!GameManagerScript.stage.IsOpenSpace(gotoPos))
+                    gotoPos = GetOpenSpace();
+            } 
+            else
+                gotoPos = GetOpenSpace();
+        }
 
         actorRef.NextPosition = gotoPos;
 
@@ -73,37 +91,48 @@ public class TestMonsterAI : MonoBehaviour
 
     private bool CanSeePlayer()
     {
-        var b = new Bresenham();
-        var pp = GameManagerScript.stage.Player.Position;
+        return GameManagerScript.stage.CheckLineOfSight(currentPosition, GameManagerScript.stage.Player.Position);
 
-        var end=new Vec();
-        foreach (var step in b.Steps(currentPosition, pp))
-        {
-            end = step;
-            if (GameManagerScript.stage.BlocksVision(step))
-                break;
-        }
-        return end == pp;
+        //var b = new Bresenham();
+        //var pp = GameManagerScript.stage.Player.Position;
+
+        //var end=new Vec();
+        //foreach (var step in b.Steps(currentPosition, pp))
+        //{
+        //    end = step;
+        //    if (GameManagerScript.stage.BlocksVision(step))
+        //        break;
+        //}
+        //return end == pp;
     }
 
     private Vec GoToPlayer()
     {
-        var path = GameManagerScript.Pathfind(currentPosition, new[] {GameManagerScript.stage.Player.Position});
-        var debugPath = String.Join(" => ", path.Select(vec => vec.ToString()).ToArray());
+        currentPath = GameManagerScript.Pathfind(currentPosition, new[] {GameManagerScript.stage.Player.Position});
+
+        var debugPath = String.Join(" => ", currentPath.Select(vec => vec.ToString()).ToArray());
         Debug.Log(debugPath);
 
-        if (path.Any())
+        if (currentPath.Any())
         {
-            Vec last = path.First();
-            foreach (var d in path)
+            Vec last = currentPath.First();
+            foreach (var d in currentPath)
             {
                 Debug.DrawLine(d.Convert(0), (last).Convert(0), Color.green, 2.0f);
                 last = d;
             }
         }
 
-        return path.Any() ? path.First() : currentPosition;
+        if (currentPath.Any())
+        {
+            var first = currentPath.First();
+            currentPath.RemoveAt(0);
+            return first;
+        }
+
+        return currentPosition;
     }
+
 
     Vec GetOpenSpace()
     {

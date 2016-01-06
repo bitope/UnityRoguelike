@@ -49,7 +49,7 @@ namespace UnityRoguelike
 
         public Rect Bounds { get{ return new Rect(0, 0, width, height); } }
 
-        public bool isOpenSpace(int x, int y)
+        public bool IsOpenSpace(int x, int y)
         {
             var p = new Vec(x, y);
             bool isFloor = tiles[p.x, p.y] != (int) Tiles.Wall;
@@ -60,6 +60,11 @@ namespace UnityRoguelike
             return (isFloor && !isOccupied && !isReserved && !isPlayer);
         }
 
+        public bool IsOpenSpace(Vec pos)
+        {
+            return IsOpenSpace(pos.x, pos.y);
+        }
+
         public bool BlocksVision(Vec tile)
         {
             var blocksVision = new[] {Tiles.Wall, Tiles.Pillar, Tiles.ClosedDoor_NS, Tiles.ClosedDoor_EW};
@@ -68,6 +73,19 @@ namespace UnityRoguelike
 
             var isOccupied = Creatures.Any(c => c.Position == tile);
             return isOccupied;
+        }
+
+        public bool CheckLineOfSight(Vec start, Vec end)
+        {
+            var b = new Bresenham();
+            var dest = new Vec();
+            foreach (var step in b.Steps(start, end))
+            {
+                dest = step;
+                if (BlocksVision(step))
+                    break;
+            }
+            return dest == end;
         }
     }
 }

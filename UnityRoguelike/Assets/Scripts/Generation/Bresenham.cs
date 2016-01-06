@@ -104,7 +104,7 @@ namespace UnityRoguelike
             {
                 yield return new Vec(b.XCur,b.YCur);
             }
-            yield return new Vec(b.XCur, b.YCur);
+            //yield return new Vec(b.XCur, b.YCur);
         }
 
         public IEnumerable<Vec> Steps(Vec from, Vec to)
@@ -114,7 +114,7 @@ namespace UnityRoguelike
             {
                 yield return new Vec(b.XCur, b.YCur);
             }
-            yield return new Vec(b.XCur, b.YCur);
+            //yield return new Vec(b.XCur, b.YCur);
         }
     }
 }
