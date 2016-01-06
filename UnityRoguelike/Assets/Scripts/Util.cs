@@ -94,5 +94,10 @@ namespace Dungeon
         {
             return v+Random.insideUnitSphere*maxOffset;
         }
+
+        public static Vector3 Convert(this Vec v, float height)
+        {
+            return new Vector3(v.x, height -0.5f , v.y);
+        }
     }
 }

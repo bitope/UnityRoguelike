@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Dungeon;
 using UnityEngine;
 using System.Collections;
@@ -57,7 +59,6 @@ public class GameManagerScript : MonoBehaviour
         RoomDecorator rd = new RoomDecorator(stage);
         var roomLines = Resources.Load("rooms") as TextAsset;
         rd.ReadAll(roomLines.text.Split('\n'));
-        //rd.ReadAll(Application.dataPath+"\\rooms.txt");
 
         Generator g = new Generator(seed);
         g.DecorateRoom += rd.DecorateRoom;
@@ -106,6 +107,9 @@ public class GameManagerScript : MonoBehaviour
                     var cell = Instantiate(pre);
                     cell.transform.position = new Vector3(x, 0, y);
                     cell.transform.parent = container.transform;
+                    var dc = cell.GetComponent<DoorController>();
+                    dc.Position = new Vec(x, y);
+                    dc.Tile = tile;
                 }
 
                 if (tile == Tiles.ClosedDoor_NS)
@@ -115,6 +119,9 @@ public class GameManagerScript : MonoBehaviour
                     cell.transform.position = new Vector3(x, 0, y);
                     cell.transform.rotation = Quaternion.AngleAxis(90, Vector3.up);
                     cell.transform.parent = container.transform;
+                    var dc = cell.GetComponent<DoorController>();
+                    dc.Position = new Vec(x, y);
+                    dc.Tile = tile;
                 }
 
                 if (tile == Tiles.Pillar)
@@ -131,7 +138,6 @@ public class GameManagerScript : MonoBehaviour
                 {
                     var pre = Resources.Load("Prefabs/Decoration/Brazier") as GameObject;
                     var cell = Instantiate(pre);
-                    //var cell = Instantiate(GameObject.Find("Brazier"));
                     cell.name = "Brazier_" + x + "_" + y;
                     cell.transform.position = new Vector3(x, 0, y);
                     cell.transform.rotation = Quaternion.AngleAxis(45, Vector3.up);
@@ -144,23 +150,14 @@ public class GameManagerScript : MonoBehaviour
                     {
                         var item = ItemFactory.GetRandom();
                         CreateItem(x, y, item);
-                        //var pre = Resources.Load("Prefabs/Item") as GameObject;
-                        //var cell = Instantiate(pre);
-                        ////var cell = Instantiate(GameObject.Find("Item"));
-                        //cell.name = "Item_" + x + "_" + y;
-                        //cell.transform.position = new Vector3(x, -0.0f, y);
-                        ////cell.transform.rotation = Quaternion.AngleAxis(45, Vector3.up);
-                        //cell.transform.parent = container.transform;
                     }
 
                     if (rng.OneIn(20))
                     {
                         var pre = Resources.Load("Prefabs/Decoration/EnemySmall") as GameObject;
                         var cell = Instantiate(pre);
-                        //var cell = Instantiate(GameObject.Find("EnemySmall"));
                         cell.name = "Rat_" + x + "_" + y;
                         cell.transform.position = new Vector3(x, 0.2f, y);
-                        //cell.transform.rotation = Quaternion.AngleAxis(45, Vector3.up);
                         cell.transform.parent = container.transform;
                     }
                 }
@@ -190,10 +187,7 @@ public class GameManagerScript : MonoBehaviour
     private void ToggleInventory()
     {
         var canvas = inventoryCanvas.GetComponent<Canvas>();
-        //inventoryCanvas.SetActive(!inventoryCanvas.activeSelf);
         canvas.enabled = !canvas.enabled;
-
-        //GameManagerScript.MouseLook = !inventoryCanvas.activeSelf;
         GameManagerScript.MouseLook = !canvas.enabled;
     }
 
@@ -209,8 +203,6 @@ public class GameManagerScript : MonoBehaviour
         c.layer = 2;
         var r = c.GetComponent<MeshRenderer>();
         r.receiveShadows = true;
-        //c.GetComponent<Mesh>().RecalculateNormals();
-
         var tileScript = c.AddComponent<TileScript>();
         var tileMaterial = Instantiate(wallMaterial);
         tileScript.SetMaterial(tileMaterial);
@@ -282,7 +274,16 @@ public class GameManagerScript : MonoBehaviour
             var rb = itemGo.GetComponent<Rigidbody>();
             rb.AddForceAtPosition(instance.player.transform.forward,instance.player.transform.position,ForceMode.Impulse);
         }
-        
-
     }
+
+    public static List<Vec> Pathfind(Vec start, Vec[] goal)
+    {
+        DijkstraMap dm = new DijkstraMap(stage, Mathf.Sqrt(2.0f));
+        dm.Compute(goal,false);
+        if (dm.CalculatePath(start.x,start.y))
+            return dm.GetPath().ToList();
+        
+        return new List<Vec>();
+    }
+
 }

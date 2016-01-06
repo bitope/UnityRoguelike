@@ -59,5 +59,15 @@ namespace UnityRoguelike
 
             return (isFloor && !isOccupied && !isReserved && !isPlayer);
         }
+
+        public bool BlocksVision(Vec tile)
+        {
+            var blocksVision = new[] {Tiles.Wall, Tiles.Pillar, Tiles.ClosedDoor_NS, Tiles.ClosedDoor_EW};
+            if (blocksVision.Contains((Tiles) tiles[tile.x, tile.y]))
+                return true;
+
+            var isOccupied = Creatures.Any(c => c.Position == tile);
+            return isOccupied;
+        }
     }
 }

@@ -7,13 +7,15 @@ Inventory screen
 
 UI
 
-PAthfinding A* and Dijkestra.
-
 Goalbased AI.
 
 Statemachine for Enemies
 
 Target selector.
 Target selector for RANGED.
+
+FIxa så spelaren behåller inventory mellan respawns. (eller nollställ ALLT, inte bar inventroy)
+är i ofas med visuals just nu. 
+
 
 

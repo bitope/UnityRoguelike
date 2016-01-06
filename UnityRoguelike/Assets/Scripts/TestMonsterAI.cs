@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Dungeon;
 using UnityEngine;
 using System.Collections;
@@ -22,6 +24,7 @@ public class TestMonsterAI : MonoBehaviour
 	    currentPosition = Util.GetVecPosition(transform.position);
 
         actorRef = new Actor();
+	    actorRef.Name = "TestMonsterAI";
         GameManagerScript.stage.Creatures.Add(actorRef);	
     }
 	
@@ -38,11 +41,12 @@ public class TestMonsterAI : MonoBehaviour
     {
         if (performingTurn)
             return;
-
         performingTurn = true;
-
         lastTurn++;
-        var gotoPos = GetOpenSpace();
+
+        Vec gotoPos;
+        gotoPos = CanSeePlayer() ? GoToPlayer() : GetOpenSpace();
+
         actorRef.NextPosition = gotoPos;
 
         var v = new Vector3(gotoPos.x,0,gotoPos.y);
@@ -67,6 +71,40 @@ public class TestMonsterAI : MonoBehaviour
         performingTurn = false;
     }
 
+    private bool CanSeePlayer()
+    {
+        var b = new Bresenham();
+        var pp = GameManagerScript.stage.Player.Position;
+
+        var end=new Vec();
+        foreach (var step in b.Steps(currentPosition, pp))
+        {
+            end = step;
+            if (GameManagerScript.stage.BlocksVision(step))
+                break;
+        }
+        return end == pp;
+    }
+
+    private Vec GoToPlayer()
+    {
+        var path = GameManagerScript.Pathfind(currentPosition, new[] {GameManagerScript.stage.Player.Position});
+        var debugPath = String.Join(" => ", path.Select(vec => vec.ToString()).ToArray());
+        Debug.Log(debugPath);
+
+        if (path.Any())
+        {
+            Vec last = path.First();
+            foreach (var d in path)
+            {
+                Debug.DrawLine(d.Convert(0), (last).Convert(0), Color.green, 2.0f);
+                last = d;
+            }
+        }
+
+        return path.Any() ? path.First() : currentPosition;
+    }
+
     Vec GetOpenSpace()
     {
         var stage = GameManagerScript.stage;
@@ -76,7 +114,8 @@ public class TestMonsterAI : MonoBehaviour
             bool isFloor  = stage[p.x, p.y] == Tiles.Floor;
             bool isOccupied = stage.Creatures.Any(c => c.Position == p);
             bool isReserved = stage.Creatures.Any(c => c.NextPosition == p);
-            return (isFloor && !isOccupied);
+            bool isPlayer = stage.Player != null && stage.Player.Position == p;
+            return (isFloor && !isOccupied && !isReserved && !isPlayer);
         }).ToList();
 
         if (!open.Any())
@@ -84,6 +123,11 @@ public class TestMonsterAI : MonoBehaviour
             Debug.LogError("GetOpenSpace: "+name + " has nowhere to go. Standing still.");
             return currentPosition;
         }
+
+        //foreach (var d in open)
+        //{
+        //    Debug.DrawLine(currentPosition.Convert(0), (currentPosition + d).Convert(0), Color.green, 2.0f);
+        //}
 
         return GameManagerScript.rng.PickOne(open)+currentPosition;
     }

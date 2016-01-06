@@ -229,7 +229,7 @@ namespace UnityRoguelike
                         if (distances[newNode] > dt)
                         {
                             int j;
-                            if (!map.isOpenSpace(tx, ty))
+                            if (!map.isOpenSpace(tx, ty)) //TODO: if goalnode has actor, goalnode should be open space.
                                 continue;
 
                             distances[newNode] = dt;
