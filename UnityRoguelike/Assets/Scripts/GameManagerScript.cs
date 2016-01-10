@@ -146,22 +146,28 @@ public class GameManagerScript : MonoBehaviour
 
                 if (tile == Tiles.Altar)
                 {
-                    var pre = Resources.Load("Prefabs/Decoration/Altar") as GameObject;
-                    var cell = Instantiate(pre);
-                    cell.name = "Altar_" + x + "_" + y;
-                    cell.transform.position = new Vector3(x, 0, y);
-                    cell.transform.rotation = Quaternion.AngleAxis(0, Vector3.up);
-                    cell.transform.parent = container.transform;
+                    if (!stage.HasDoorAtCardinalDirection(new Vec(x, y)))
+                    {
+                        var pre = Resources.Load("Prefabs/Decoration/Altar") as GameObject;
+                        var cell = Instantiate(pre);
+                        cell.name = "Altar_" + x + "_" + y;
+                        cell.transform.position = new Vector3(x, 0, y);
+                        cell.transform.rotation = Quaternion.AngleAxis(0, Vector3.up);
+                        cell.transform.parent = container.transform;
+                    }
                 }
 
                 if (tile == Tiles.Fountain)
                 {
-                    var pre = Resources.Load("Prefabs/Decoration/BloodFountain") as GameObject;
-                    var cell = Instantiate(pre);
-                    cell.name = "BloodFountain_" + x + "_" + y;
-                    cell.transform.position = new Vector3(x, 0, y);
-                    cell.transform.rotation = Quaternion.AngleAxis(0, Vector3.up);
-                    cell.transform.parent = container.transform;
+                    if (!stage.HasDoorAtCardinalDirection(new Vec(x, y)))
+                    {
+                        var pre = Resources.Load("Prefabs/Decoration/BloodFountain") as GameObject;
+                        var cell = Instantiate(pre);
+                        cell.name = "BloodFountain_" + x + "_" + y;
+                        cell.transform.position = new Vector3(x, 0, y);
+                        cell.transform.rotation = Quaternion.AngleAxis(0, Vector3.up);
+                        cell.transform.parent = container.transform;
+                    }
                 }
 
                 if (tile == Tiles.Floor)

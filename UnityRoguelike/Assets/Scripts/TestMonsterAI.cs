@@ -84,6 +84,11 @@ public class TestMonsterAI : MonoBehaviour
         if (x.Any())
             StartCoroutine(WaitAndMove(0.2f, transform.position, GameManagerScript.rng.PickOne(x).Convert(0)));
         //else do nothing.
+        else
+        {
+            lastTurn++;
+            performingTurn = false;
+        }
     }
 
     IEnumerator WaitAndMove(float delayTime, Vector3 start, Vector3 end)

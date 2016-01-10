@@ -65,6 +65,12 @@ namespace UnityRoguelike
             return IsOpenSpace(pos.x, pos.y);
         }
 
+        public bool HasDoorAtCardinalDirection(Vec pos)
+        {
+            var x = Direction.cardinal.Select(i => i + pos).Where(i=>((Tiles)tiles[i.x,i.y]).ToString().Contains("Door")).ToList();
+            return x.Any();
+        }
+
         public bool BlocksVision(Vec tile)
         {
             var blocksVision = new[] {Tiles.Wall, Tiles.Pillar, Tiles.ClosedDoor_NS, Tiles.ClosedDoor_EW};
