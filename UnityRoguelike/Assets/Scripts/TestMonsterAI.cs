@@ -39,63 +39,71 @@ public class TestMonsterAI : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
-	    if (GameManagerScript.turnCount > lastTurn)
-	        PerformTurn();
-
         currentPosition = Util.GetVecPosition(transform.position);
-        actorRef.Position = currentPosition;
+        label.text = currentPosition+" ("+(GameManagerScript.turnCount-lastTurn)+")";
 
-        label.text = currentPosition.ToString();
+	    if (currentPosition != actorRef.Position)
+	        lastTurn++;
+
+        actorRef.Position = currentPosition;
+        
+        if (GameManagerScript.turnCount > lastTurn)
+	        PerformTurn();
 	}
 
     void PerformTurn()
     {
         if (performingTurn)
             return;
-        performingTurn = true;
-        lastTurn++;
 
-        Vec gotoPos;
+        performingTurn = true;
         if (CanSeePlayer())
-            gotoPos = GoToPlayer();
+            GoTowardsAdjacentOpenFromPlayer();
+        else
+            GoTowardsAnyOpenSpace();
+    }
+
+    public void GoTowardsAdjacentOpenFromPlayer()
+    {
+        var pp = GameManagerScript.stage.Player.Position;
+        var x = Direction.cardinal.Select(i => i + pp).Where(i => GameManagerScript.stage.IsOpenSpace(i)).ToList();
+        if (x.Any())
+            StartCoroutine(WaitAndMove(0.2f, transform.position, GameManagerScript.rng.PickOne(x).Convert(0)));
         else
         {
-            if (currentPath.Any())
-            {
-                var first = currentPath.First();
-                currentPath.RemoveAt(0);
-                gotoPos = first;
-
-                if (!GameManagerScript.stage.IsOpenSpace(gotoPos))
-                    gotoPos = GetOpenSpace();
-            } 
-            else
-                gotoPos = GetOpenSpace();
+            lastTurn++;
+            performingTurn = false;
         }
+    }
 
-        actorRef.NextPosition = gotoPos;
-
-        var v = new Vector3(gotoPos.x,0,gotoPos.y);
-        StartCoroutine(WaitAndMove(0.2f, transform.position, v));
+    public void GoTowardsAnyOpenSpace()
+    {
+        var stage = GameManagerScript.stage;
+        var pp = currentPosition;
+        var x = Direction.cardinal.Select(i => i + pp).Where(stage.IsOpenSpace).ToList();
+        if (x.Any())
+            StartCoroutine(WaitAndMove(0.2f, transform.position, GameManagerScript.rng.PickOne(x).Convert(0)));
+        //else do nothing.
     }
 
     IEnumerator WaitAndMove(float delayTime, Vector3 start, Vector3 end)
     {
+        var thisTurn = lastTurn;
         nav.SetDestination(end);
         nav.Resume();
-        yield return new WaitForSeconds(delayTime);
-        //float startTime = Time.time; 
-        //while (!MoveTowardsTarget(end))
-        //{
-        //    if ((Time.time - startTime) > 1)
-        //    {
-        //        Debug.LogError("WaitAndMove: " + name + " stuck for more than 1 sec. Aborting.");
-        //        break;
-        //    }
-        //    yield return null;
-        //}
-        //currentPosition = Util.GetVecPosition(transform.position);
-        //actorRef.Position = currentPosition;
+        
+        float startTime = Time.time; 
+
+        while (thisTurn == lastTurn)
+        {
+            yield return new WaitForEndOfFrame();
+            if ((Time.time - startTime) > 1)
+            {
+                //wasted turn.
+                lastTurn++;
+            }
+        }
+        nav.Stop();
         performingTurn = false;
     }
 
