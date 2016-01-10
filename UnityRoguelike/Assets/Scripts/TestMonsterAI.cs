@@ -9,6 +9,7 @@ using UnityRoguelike;
 public class TestMonsterAI : MonoBehaviour
 {
     private CharacterController cc;
+    private NavMeshAgent nav;
     private int lastTurn;
     private bool performingTurn = false;
     private Vec currentPosition;
@@ -23,13 +24,17 @@ public class TestMonsterAI : MonoBehaviour
 	{
 	    label = transform.FindChild("Label").GetComponent<TextMesh>();
 	    cc = GetComponent<CharacterController>();
+	    nav = GetComponent<NavMeshAgent>();
+
 	    currentPosition = Util.GetVecPosition(transform.position);
         currentPath = new List<Vec>();
 
         actorRef = new Actor();
 	    actorRef.Name = "TestMonsterAI";
-        GameManagerScript.stage.Creatures.Add(actorRef);	
-    }
+        GameManagerScript.stage.Creatures.Add(actorRef);
+
+	    nav.Warp(transform.position); // cached values wierdness...
+	}
 	
 	// Update is called once per frame
 	void Update ()
@@ -37,7 +42,10 @@ public class TestMonsterAI : MonoBehaviour
 	    if (GameManagerScript.turnCount > lastTurn)
 	        PerformTurn();
 
-	    label.text = currentPosition.ToString();
+        currentPosition = Util.GetVecPosition(transform.position);
+        actorRef.Position = currentPosition;
+
+        label.text = currentPosition.ToString();
 	}
 
     void PerformTurn()
@@ -73,42 +81,36 @@ public class TestMonsterAI : MonoBehaviour
 
     IEnumerator WaitAndMove(float delayTime, Vector3 start, Vector3 end)
     {
-        float startTime = Time.time; 
-        while (!MoveTowardsTarget(end))
-        {
-            if ((Time.time - startTime) > 10)
-            {
-                Debug.LogError("WaitAndMove: " + name + " stuck for more than 10 sec. Aborting.");
-                break;
-            }
-            yield return null;
-        }
-        currentPosition = Util.GetVecPosition(transform.position);
-
-        actorRef.Position = currentPosition;
+        nav.SetDestination(end);
+        nav.Resume();
+        yield return new WaitForSeconds(delayTime);
+        //float startTime = Time.time; 
+        //while (!MoveTowardsTarget(end))
+        //{
+        //    if ((Time.time - startTime) > 1)
+        //    {
+        //        Debug.LogError("WaitAndMove: " + name + " stuck for more than 1 sec. Aborting.");
+        //        break;
+        //    }
+        //    yield return null;
+        //}
+        //currentPosition = Util.GetVecPosition(transform.position);
+        //actorRef.Position = currentPosition;
         performingTurn = false;
     }
 
     private bool CanSeePlayer()
     {
         return GameManagerScript.stage.CheckLineOfSight(currentPosition, GameManagerScript.stage.Player.Position);
-
-        //var b = new Bresenham();
-        //var pp = GameManagerScript.stage.Player.Position;
-
-        //var end=new Vec();
-        //foreach (var step in b.Steps(currentPosition, pp))
-        //{
-        //    end = step;
-        //    if (GameManagerScript.stage.BlocksVision(step))
-        //        break;
-        //}
-        //return end == pp;
     }
 
     private Vec GoToPlayer()
     {
         currentPath = GameManagerScript.Pathfind(currentPosition, new[] {GameManagerScript.stage.Player.Position});
+
+        // Remove last step.
+        if (currentPath.Any())
+            currentPath.RemoveAt(currentPath.Count - 1);
 
         var debugPath = String.Join(" => ", currentPath.Select(vec => vec.ToString()).ToArray());
         Debug.Log(debugPath);
@@ -161,18 +163,18 @@ public class TestMonsterAI : MonoBehaviour
         return GameManagerScript.rng.PickOne(open)+currentPosition;
     }
 
-    private bool MoveTowardsTarget(Vector3 target)
-    {
-        var offset = target - transform.position;
-        if (offset.magnitude <= .3f) //We have reached acceptable tolerance.
-            return true;
+    //private bool MoveTowardsTarget(Vector3 target)
+    //{
+    //    var offset = target - transform.position;
+    //    if (offset.magnitude <= .3f) //We have reached acceptable tolerance.
+    //        return true;
 
-        //If we're further away than .3 unit, move towards the target.
-        //The minimum allowable tolerance varies with the speed of the object and the framerate. 
-        // 2 * tolerance must be >= moveSpeed / framerate or the object will jump right over the stop.
-        offset = offset.normalized*2f;
-        cc.Move(offset*Time.deltaTime);
-        return false;
-    }
+    //    //If we're further away than .3 unit, move towards the target.
+    //    //The minimum allowable tolerance varies with the speed of the object and the framerate. 
+    //    // 2 * tolerance must be >= moveSpeed / framerate or the object will jump right over the stop.
+    //    offset = offset.normalized*2f;
+    //    cc.Move(offset*Time.deltaTime);
+    //    return false;
+    //}
 
 }
