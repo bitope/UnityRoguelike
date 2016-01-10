@@ -15,7 +15,9 @@ namespace UnityRoguelike
         ClosedDoor_NS,
         ClosedDoor_EW,
         Brazier,
-        Pillar
+        Pillar,
+        Altar,
+        Fountain
     }
 
 

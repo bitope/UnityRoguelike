@@ -81,8 +81,8 @@ public class GameManagerScript : MonoBehaviour
                 {
                     var cell = CreateFloor(x, y, Tileset.GetRandom(floorset));
                     cell.transform.parent = container.transform;
-                    //cell = CreateCeiling(x, y, Tileset.GetRandom(ceilingset));
-                    //cell.transform.parent = container.transform;
+                    cell = CreateCeiling(x, y, Tileset.GetRandom(ceilingset));
+                    cell.transform.parent = container.transform;
 
                     if (setPlayer && tile==Tiles.Floor)
                     {
@@ -141,6 +141,26 @@ public class GameManagerScript : MonoBehaviour
                     cell.name = "Brazier_" + x + "_" + y;
                     cell.transform.position = new Vector3(x, 0, y);
                     cell.transform.rotation = Quaternion.AngleAxis(45, Vector3.up);
+                    cell.transform.parent = container.transform;
+                }
+
+                if (tile == Tiles.Altar)
+                {
+                    var pre = Resources.Load("Prefabs/Decoration/Altar") as GameObject;
+                    var cell = Instantiate(pre);
+                    cell.name = "Altar_" + x + "_" + y;
+                    cell.transform.position = new Vector3(x, 0, y);
+                    cell.transform.rotation = Quaternion.AngleAxis(0, Vector3.up);
+                    cell.transform.parent = container.transform;
+                }
+
+                if (tile == Tiles.Fountain)
+                {
+                    var pre = Resources.Load("Prefabs/Decoration/BloodFountain") as GameObject;
+                    var cell = Instantiate(pre);
+                    cell.name = "BloodFountain_" + x + "_" + y;
+                    cell.transform.position = new Vector3(x, 0, y);
+                    cell.transform.rotation = Quaternion.AngleAxis(0, Vector3.up);
                     cell.transform.parent = container.transform;
                 }
 

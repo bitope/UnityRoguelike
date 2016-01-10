@@ -61,6 +61,8 @@ namespace UnityRoguelike
 
                     if (c == 'b') { stage[x, y] = Tiles.Brazier; }
                     if (c == 'p') { stage[x, y] = Tiles.Pillar; }
+                    if (c == 'a') { stage[x, y] = Tiles.Altar; }
+                    if (c == '{') { stage[x, y] = Tiles.Fountain; }
 
                 }
             }
