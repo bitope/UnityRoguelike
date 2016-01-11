@@ -17,7 +17,9 @@ namespace UnityRoguelike
         Brazier,
         Pillar,
         Altar,
-        Fountain
+        Fountain, 
+        StairUp,
+        StairDown
     }
 
 

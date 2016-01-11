@@ -9,6 +9,7 @@ namespace UnityRoguelike
     [Serializable]
     public class Actor : INotifyPropertyChanged
     {
+        private bool _blocking;
         private int _currentHp;
         private int _maxHp;
         private Vec _position;
@@ -23,8 +24,7 @@ namespace UnityRoguelike
         {
             inventory = new Item[50];
             equippedItems = new Item[8];
-            // 0-49 är inventory.
-            // 50-57 är equipped.
+            _blocking = true;
         }
 
         protected void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -80,6 +80,11 @@ namespace UnityRoguelike
 
         public Vec NextPosition { get; set; }
 
+        public bool IsBlocking()
+        {
+            return _blocking;
+        }
+
         public int FindEmptyInventorySlot()
         {
             for (int i = 0; i < 50; i++)
@@ -115,8 +120,8 @@ namespace UnityRoguelike
             {
                 equippedItems[id - 50] = value;
             }
-            
-            //OnPropertyChanged("Inventory");
+            // Do not signal change automatically. 
+            // Must be signaled manually to not cause loops.
         }
 
         public Item GetInventory(int id)
