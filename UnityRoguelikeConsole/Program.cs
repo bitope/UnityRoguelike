@@ -21,8 +21,9 @@ namespace UnityRoguelikeConsole
 
             int dungeon = 0;
             while (Console.ReadKey().Key != ConsoleKey.Escape)
+
             {
-                MakeDungeon(dungeon++);
+                MakeDrunkardDungeon(dungeon++);
             }
 
             IFormatter formatter = new BinaryFormatter();
@@ -40,7 +41,6 @@ namespace UnityRoguelikeConsole
             Generator g = new Generator(seed);
 
             g.DecorateRoom += rd.DecorateRoom;
-
             g.numRoomTries = 500;
             g.generate(stage);
 
@@ -53,18 +53,23 @@ namespace UnityRoguelikeConsole
             dm.CalculatePath(21, 21);
             var path = dm.GetReversePath().ToList();
 
-            Console.WriteLine("Seed: "+seed);
+            PrintDungeon(seed);
+        }
+
+        static void PrintDungeon(int seed)
+        {
+            Console.WriteLine("Seed: " + seed);
 
             int p = 0;
-            for (int y = stage.height-1; y >=0; y--)
+            for (int y = stage.height - 1; y >= 0; y--)
             {
                 for (int x = 0; x < stage.width; x++)
                 {
-                    if (path.Contains(new Vec(x, y)))
-                    {
-                        Console.Write(path.IndexOf(new Vec(x,y)).ToString("D2"));
-                        continue;
-                    }
+                    //if (path.Contains(new Vec(x, y)))
+                    //{
+                    //    Console.Write(path.IndexOf(new Vec(x, y)).ToString("D2"));
+                    //    continue;
+                    //}
                     //Console.Write(stage[x,y].ToString().Substring(0,1));
                     switch (stage[x, y])
                     {
@@ -96,6 +101,16 @@ namespace UnityRoguelikeConsole
                 }
                 Console.Write('\n');
             }
+
+        }
+
+        static void MakeDrunkardDungeon(int seed)
+        {
+            stage = new Stage(23, 23);
+
+            DrunkardWalk dw = new DrunkardWalk(seed);
+            dw.Perform(stage, 0.3f);
+            PrintDungeon(seed);
         }
 
         static void Temp_generate_floors()

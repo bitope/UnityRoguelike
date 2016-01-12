@@ -13,26 +13,38 @@ namespace UnityRoguelike
         public int height;
 
         [SerializeField]
-        private readonly int[,] tiles;
-        
+        private readonly Tile[,] tiles;
+
         public readonly List<Rect> RoomRects;
 
         public Actor Player;
-        public List<Actor> Creatures; 
+        public List<Actor> Creatures;
 
         public Stage(int width, int height)
         {
             this.width = width;
             this.height = height;
-            tiles = new int[width,height];
+            tiles = new Tile[width, height];
+            InitializeTiles();
             RoomRects = new List<Rect>();
             Creatures = new List<Actor>();
         }
 
+        public void InitializeTiles()
+        {
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    tiles[x, y] = new Tile();
+                }
+            }
+        }
+
         public Tiles this[int x, int y]
         {
-            get { return (Tiles) tiles[x, y]; }
-            set { tiles[x, y] = (int) value; }
+            get { return tiles[x, y].Type; }
+            set { tiles[x, y].Type = value; }
         }
 
         public IEnumerable<Vec> GetAll(Tiles tile)
@@ -41,21 +53,21 @@ namespace UnityRoguelike
             {
                 for (int x = 0; x < width; x++)
                 {
-                    if (tiles[x,y]==(int)tile)
-                        yield return new Vec(x,y);
+                    if (tiles[x, y].Type == tile)
+                        yield return new Vec(x, y);
                 }
             }
         }
 
-        public Rect Bounds { get{ return new Rect(0, 0, width, height); } }
+        public Rect Bounds { get { return new Rect(0, 0, width, height); } }
 
         public bool IsOpenSpace(int x, int y)
         {
             var p = new Vec(x, y);
-            bool isFloor = tiles[p.x, p.y] != (int) Tiles.Wall;
+            bool isFloor = tiles[p.x, p.y].Type != Tiles.Wall;
             bool isOccupied = Creatures.Any(c => c.Position == p);
             bool isReserved = Creatures.Any(c => c.NextPosition == p);
-            bool isPlayer = Player!=null && Player.Position == p;
+            bool isPlayer = Player != null && Player.Position == p;
 
             return (isFloor && !isOccupied && !isReserved && !isPlayer);
         }
@@ -67,14 +79,14 @@ namespace UnityRoguelike
 
         public bool HasDoorAtCardinalDirection(Vec pos)
         {
-            var x = Direction.cardinal.Select(i => i + pos).Where(i=>((Tiles)tiles[i.x,i.y]).ToString().Contains("Door")).ToList();
+            var x = Direction.cardinal.Select(i => i + pos).Where(i => (tiles[i.x, i.y].Type).ToString().Contains("Door")).ToList();
             return x.Any();
         }
 
         public bool BlocksVision(Vec tile)
         {
-            var blocksVision = new[] {Tiles.Wall, Tiles.Pillar, Tiles.ClosedDoor_NS, Tiles.ClosedDoor_EW};
-            if (blocksVision.Contains((Tiles) tiles[tile.x, tile.y]))
+            var blocksVision = new[] { Tiles.Wall, Tiles.Pillar, Tiles.ClosedDoor_NS, Tiles.ClosedDoor_EW };
+            if (blocksVision.Contains(tiles[tile.x, tile.y].Type))
                 return true;
 
             var isOccupied = Creatures.Any(c => c.Position == tile);
@@ -94,4 +106,23 @@ namespace UnityRoguelike
             return dest == end;
         }
     }
+
+    [Serializable]
+    public class Tile
+    {
+        public Tiles Type;
+
+    }
+
+    [Serializable]
+    public class Dungeon
+    {
+        public List<Stage> stages;
+
+        public Dungeon()
+        {
+            stages = new List<Stage>();
+        }
+    }
+
 }
