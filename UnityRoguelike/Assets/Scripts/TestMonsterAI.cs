@@ -19,9 +19,20 @@ public class TestMonsterAI : MonoBehaviour
     private TextMesh label;
     
     private Actor actorRef;
+
+
+	private StateMachine sm;
+
     // Use this for initialization
 	void Start ()
 	{
+		sm = new StateMachine ();
+		sm.Add(new State("Start", "Idle", ()=>{
+			return true;
+		}));
+
+		sm.StateChanged += OnStateChanged;
+
 	    label = transform.FindChild("Label").GetComponent<TextMesh>();
 	    cc = GetComponent<CharacterController>();
 	    nav = GetComponent<NavMeshAgent>();
@@ -35,10 +46,17 @@ public class TestMonsterAI : MonoBehaviour
 
 	    nav.Warp(transform.position); // cached values wierdness...
 	}
+
+	public void OnStateChanged(string newState)
+	{
+		Debug.Log ("State changed => "+sm.Current);
+	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
+		sm.Transision ();
+
         currentPosition = Util.GetVecPosition(transform.position);
         label.text = currentPosition+" ("+(GameManagerScript.turnCount-lastTurn)+")";
 
