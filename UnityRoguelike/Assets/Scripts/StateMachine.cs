@@ -30,7 +30,7 @@ namespace Dungeon
 	{
 		private List<State> states;
 		private string currentState;
-		public string Current { get; private set; }
+		public string Current { get { return currentState; } }
 
 		public Action<string> StateChanged;
 
@@ -50,6 +50,7 @@ namespace Dungeon
 			foreach (var state in states.Where(i=>i.From == currentState | i.From == "Any")) { //
 				if (state.Condition()) {
 					currentState = state.To;
+					OnStateChanged ();
 					return true;
 				}
 			}
