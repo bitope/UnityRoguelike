@@ -19,19 +19,16 @@ public class TestMonsterAI : MonoBehaviour
     private TextMesh label;
     
     private Actor actorRef;
-
-
+    
 	private StateMachine sm;
 
-    // Use this for initialization
-	void Start ()
-	{
-		sm = new StateMachine ();
-		sm.Add(new State("Start", "Idle", ()=>{
-			return true;
-		}));
+    private Vec lastSeenPlayerAt;
 
-		sm.StateChanged += OnStateChanged;
+    // Use this for initialization
+    void Start ()
+	{
+        SetupStatemachine();
+
 
 	    label = transform.FindChild("Label").GetComponent<TextMesh>();
 	    cc = GetComponent<CharacterController>();
@@ -47,27 +44,59 @@ public class TestMonsterAI : MonoBehaviour
 	    nav.Warp(transform.position); // cached values wierdness...
 	}
 
-	public void OnStateChanged(string newState)
+    private void SetupStatemachine()
+    {
+        sm = new StateMachine();
+        sm.Add(new State("Start", "Idle", () => {
+            return true;
+        }));
+
+        sm.Add(new State("Idle", "Chase", () => {
+            return CanSeePlayer();
+        }));
+
+        sm.Add(new State("Chase", "Idle", () => {
+            return !CanSeePlayer() && currentPosition == lastSeenPlayerAt;
+        }));
+
+        sm.Add(new State("Any", "Attack", () => {
+            return CanSeePlayer() && currentPosition.IsAdjacentTo(GameManagerScript.stage.Player.Position);
+        }));
+
+        sm.Add(new State("Attack", "Idle", () => {
+            return !currentPosition.IsAdjacentTo(GameManagerScript.stage.Player.Position);
+        }));
+
+        sm.StateChanged += OnStateChanged;
+    }
+
+    public void OnStateChanged(string newState)
 	{
 		Debug.Log ("State changed => "+sm.Current);
+
+        if (newState == "Chase")
+        {
+            lastSeenPlayerAt = GameManagerScript.stage.Player.Position;
+        }
 	}
-	
-	// Update is called once per frame
-	void Update ()
-	{
-		sm.Transision ();
+
+    // Update is called once per frame
+    void Update()
+    {
+        sm.Transision();
 
         currentPosition = Util.GetVecPosition(transform.position);
-        label.text = currentPosition+" ("+(GameManagerScript.turnCount-lastTurn)+")";
+        //label.text = currentPosition + " (" + (GameManagerScript.turnCount - lastTurn) + ")";
+        label.text = sm.Current + " (" + (GameManagerScript.turnCount - lastTurn) + ")";
 
-	    if (currentPosition != actorRef.Position)
-	        lastTurn++;
+        if (currentPosition != actorRef.Position)
+            lastTurn++;
 
         actorRef.Position = currentPosition;
-        
+
         if (GameManagerScript.turnCount > lastTurn)
-	        PerformTurn();
-	}
+            PerformTurn();
+    }
 
     void PerformTurn()
     {
@@ -75,10 +104,35 @@ public class TestMonsterAI : MonoBehaviour
             return;
 
         performingTurn = true;
-        if (CanSeePlayer())
-            GoTowardsAdjacentOpenFromPlayer();
-        else
+
+        if (sm.Current == "Idle")
+        {
             GoTowardsAnyOpenSpace();
+        }
+
+        if (sm.Current == "Chase")
+        {
+            if (CanSeePlayer())
+            {
+                lastSeenPlayerAt = GameManagerScript.stage.Player.Position;
+                GoTowardsAdjacentOpenFromPlayer();
+            }
+            else
+                GoTowardsLastSeenPlayerSpace();
+        }
+    }
+
+    private void GoTowardsLastSeenPlayerSpace()
+    {
+        var pp = lastSeenPlayerAt;
+        var x = Direction.cardinal.Select(i => i + pp).Where(i => GameManagerScript.stage.IsOpenSpace(i)).ToList();
+        if (x.Any())
+            StartCoroutine(WaitAndMove(0.2f, transform.position, GameManagerScript.rng.PickOne(x).Convert(0)));
+        else
+        {
+            lastTurn++;
+            performingTurn = false;
+        }
     }
 
     public void GoTowardsAdjacentOpenFromPlayer()
@@ -124,6 +178,7 @@ public class TestMonsterAI : MonoBehaviour
             {
                 //wasted turn.
                 lastTurn++;
+                Debug.Log(gameObject.name + " Wasted Turn");
             }
         }
         nav.Stop();
@@ -135,64 +190,64 @@ public class TestMonsterAI : MonoBehaviour
         return GameManagerScript.stage.CheckLineOfSight(currentPosition, GameManagerScript.stage.Player.Position);
     }
 
-    private Vec GoToPlayer()
-    {
-        currentPath = GameManagerScript.Pathfind(currentPosition, new[] {GameManagerScript.stage.Player.Position});
+    //private Vec GoToPlayer()
+    //{
+    //    currentPath = GameManagerScript.Pathfind(currentPosition, new[] {GameManagerScript.stage.Player.Position});
 
-        // Remove last step.
-        if (currentPath.Any())
-            currentPath.RemoveAt(currentPath.Count - 1);
+    //    // Remove last step.
+    //    if (currentPath.Any())
+    //        currentPath.RemoveAt(currentPath.Count - 1);
 
-        var debugPath = String.Join(" => ", currentPath.Select(vec => vec.ToString()).ToArray());
-        Debug.Log(debugPath);
+    //    var debugPath = String.Join(" => ", currentPath.Select(vec => vec.ToString()).ToArray());
+    //    Debug.Log(debugPath);
 
-        if (currentPath.Any())
-        {
-            Vec last = currentPath.First();
-            foreach (var d in currentPath)
-            {
-                Debug.DrawLine(d.Convert(0), (last).Convert(0), Color.green, 2.0f);
-                last = d;
-            }
-        }
+    //    if (currentPath.Any())
+    //    {
+    //        Vec last = currentPath.First();
+    //        foreach (var d in currentPath)
+    //        {
+    //            Debug.DrawLine(d.Convert(0), (last).Convert(0), Color.green, 2.0f);
+    //            last = d;
+    //        }
+    //    }
 
-        if (currentPath.Any())
-        {
-            var first = currentPath.First();
-            currentPath.RemoveAt(0);
-            return first;
-        }
+    //    if (currentPath.Any())
+    //    {
+    //        var first = currentPath.First();
+    //        currentPath.RemoveAt(0);
+    //        return first;
+    //    }
 
-        return currentPosition;
-    }
+    //    return currentPosition;
+    //}
 
 
-    Vec GetOpenSpace()
-    {
-        var stage = GameManagerScript.stage;
-        var open = Direction.all.Where(d =>
-        {
-            var p = currentPosition + d;
-            bool isFloor  = stage[p.x, p.y] == Tiles.Floor;
-            bool isOccupied = stage.Creatures.Any(c => c.Position == p);
-            bool isReserved = stage.Creatures.Any(c => c.NextPosition == p);
-            bool isPlayer = stage.Player != null && stage.Player.Position == p;
-            return (isFloor && !isOccupied && !isReserved && !isPlayer);
-        }).ToList();
+    //Vec GetOpenSpace()
+    //{
+    //    var stage = GameManagerScript.stage;
+    //    var open = Direction.all.Where(d =>
+    //    {
+    //        var p = currentPosition + d;
+    //        bool isFloor  = stage[p.x, p.y] == Tiles.Floor;
+    //        bool isOccupied = stage.Creatures.Any(c => c.Position == p);
+    //        bool isReserved = stage.Creatures.Any(c => c.NextPosition == p);
+    //        bool isPlayer = stage.Player != null && stage.Player.Position == p;
+    //        return (isFloor && !isOccupied && !isReserved && !isPlayer);
+    //    }).ToList();
 
-        if (!open.Any())
-        {
-            Debug.LogError("GetOpenSpace: "+name + " has nowhere to go. Standing still.");
-            return currentPosition;
-        }
+    //    if (!open.Any())
+    //    {
+    //        Debug.LogError("GetOpenSpace: "+name + " has nowhere to go. Standing still.");
+    //        return currentPosition;
+    //    }
 
-        //foreach (var d in open)
-        //{
-        //    Debug.DrawLine(currentPosition.Convert(0), (currentPosition + d).Convert(0), Color.green, 2.0f);
-        //}
+    //    //foreach (var d in open)
+    //    //{
+    //    //    Debug.DrawLine(currentPosition.Convert(0), (currentPosition + d).Convert(0), Color.green, 2.0f);
+    //    //}
 
-        return GameManagerScript.rng.PickOne(open)+currentPosition;
-    }
+    //    return GameManagerScript.rng.PickOne(open)+currentPosition;
+    //}
 
     //private bool MoveTowardsTarget(Vector3 target)
     //{

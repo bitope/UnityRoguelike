@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using UnityRoguelike;
 
@@ -98,6 +99,11 @@ namespace Dungeon
         public static Vector3 Convert(this Vec v, float height)
         {
             return new Vector3(v.x, height -0.5f , v.y);
+        }
+
+        public static bool IsAdjacentTo(this Vec v, Vec other)
+        {
+            return Direction.cardinal.Select(i => i + v).Any(i => i == other);
         }
     }
 }
